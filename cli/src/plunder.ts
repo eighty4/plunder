@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import {stat} from 'node:fs/promises'
 import nopt from 'nopt'
 import {z} from 'zod'
