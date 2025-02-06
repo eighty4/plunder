@@ -1,0 +1,20 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - .github/**
+      - cli/src/**
+      - cli/tsconfig.json
+      - core/src/**
+      - core/tsconfig.json
+      - pnpm-lock.yaml
+      - tsconfig.json
+jobs:
+  publish:
+    uses: ./.github/workflows/publish.yml
+    permissions:
+      contents: write
+    with:
+      semver-bump: prerelease
+    secrets: inherit
