@@ -75,6 +75,7 @@ async function captureBreakpointScreenshots(browser: BrowserProcess, parsedPage:
             fullPage: true,
             type: 'png',
         }))
+        await page.close()
     }))
 }
 

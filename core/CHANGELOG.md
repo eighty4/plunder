@@ -1,5 +1,7 @@
 ## Unreleased - ReleaseDate
 
+- FIX closing browser context after capturing webpage screenshots
+
 ## 0.0.1 - 2025-02-05
 
 - capture screenshots of webpages at CSS media query page widths

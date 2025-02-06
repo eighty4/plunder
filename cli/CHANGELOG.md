@@ -1,5 +1,7 @@
 ## Unreleased - ReleaseDate
 
+- FIX closing browser context after capturing webpage screenshots
+
 ## 0.0.2 - 2025-02-05
 
 - FIX running package as executable program
