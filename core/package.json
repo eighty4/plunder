@@ -1,0 +1,30 @@
+{
+  "name": "@eighty4/plunder-core",
+  "version": "0.0.1",
+  "author": "Adam McKee <adam.be.g84d@gmail.com>",
+  "repository": "https://github.com/eighty4/plunder",
+  "license": "BSD-2-Clause",
+  "type": "module",
+  "main": "lib/api.js",
+  "types": "lib/api.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "test": "node --experimental-strip-types --test src/*.spec.ts"
+  },
+  "dependencies": {
+    "lightningcss": "^1.29.1",
+    "playwright": "^1.50.1",
+    "playwright-core": "^1.50.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  },
+  "files": [
+    "lib/**/*",
+    "!lib/**/*.spec.*",
+    "package.json",
+    "README.md"
+  ]
+}
