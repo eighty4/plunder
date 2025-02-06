@@ -1,10 +1,10 @@
-import {mkdir, writeFile} from 'node:fs/promises'
+import {writeFile} from 'node:fs/promises'
 import path from 'node:path'
 import z, {ZodError} from 'zod'
 import {findAllCss} from './cssFind.js'
-import {type CssBreakpoint, parseCssForBreakpoints} from './cssParse.js'
+import {type CssBreakpoint, type CssDimension, parseCssForBreakpoints} from './cssParse.js'
 import {findAllSameOriginAnchorHrefs} from './domParse.js'
-import {makeUrlOutDir} from './fileSystem.js'
+import {makeOutDirForPageUrl} from './fileSystem.js'
 import {type BrowserEngine, BrowserEngineValues, BrowserProcess, launchBrowser} from './playwright.js'
 
 export {type BrowserEngine, BrowserEngineValues} from './playwright.ts'
@@ -45,38 +45,65 @@ export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
     const browser = await launchBrowser(opts)
     try {
         const pages = await parsePagesForCapture(browser, opts)
-        await mkdir(opts.outDir, {recursive: true})
-        await Promise.all(pages.map(parsedPage => captureBreakpointScreenshots(browser, parsedPage, opts)))
+        await Promise.all(pages.map(parsedPage => captureScreenshotsAroundBreakpoints(
+            browser, parsedPage.url, parsedPage.breakpoints, opts)))
     } finally {
         await browser.close()
     }
 }
 
-async function captureBreakpointScreenshots(browser: BrowserProcess, parsedPage: ParsePageResult, opts: CaptureScreenshotsOptions): Promise<void> {
-    const screenshotDir = await makeUrlOutDir(opts.outDir, new URL(parsedPage.url))
-    const viewportWidths = Array.from(new Set(parsedPage.breakpoints.flatMap(breakpoint => {
-        const viewportWidths = []
+async function captureScreenshotsAroundBreakpoints(browser: BrowserProcess, url: string, breakpoints: Array<CssBreakpoint>, opts: CaptureScreenshotsOptions): Promise<void> {
+    const manifest: {
+        url: string,
+        screenshots: Record<string, { viewport: { width: number } }>,
+        breakpoints: Array<{
+            source: string,
+            lowerBound?: CssDimension,
+            upperBound?: CssDimension,
+            screenshots: Array<{
+                file: string,
+                viewport: {
+                    width: number,
+                }
+            }>
+        }>
+    } = {url, screenshots: {}, breakpoints: []}
+    breakpoints.forEach(breakpoint => {
+        const viewportWidths: Array<number> = []
         if (breakpoint.lowerBound) {
             viewportWidths.push(breakpoint.lowerBound.value, breakpoint.lowerBound.value - 1)
         }
         if (breakpoint.upperBound) {
             viewportWidths.push(breakpoint.upperBound.value, breakpoint.upperBound.value + 1)
         }
-        return viewportWidths
-    })))
-    await Promise.all(viewportWidths.map(async width => {
+        manifest.breakpoints.push({
+            source: breakpoint.filename,
+            lowerBound: breakpoint.lowerBound,
+            upperBound: breakpoint.upperBound,
+            screenshots: viewportWidths.map(width => {
+                const file = `w_${width}.png`
+                if (!manifest.screenshots[file]) {
+                    manifest.screenshots[file] = {viewport: {width}}
+                }
+                return {file, viewport: {width}}
+            }),
+        })
+    })
+    const screenshotDir = await makeOutDirForPageUrl(opts.outDir, url)
+    await Promise.all(Object.entries(manifest.screenshots).map(async ([file, {viewport}]) => {
         const page = await browser.newPage({
             height: 600,
-            width,
+            width: viewport.width,
         })
-        await page.goto(parsedPage.url)
-        const p = path.join(screenshotDir, `w_${width}.png`)
+        await page.goto(url)
+        const p = path.join(screenshotDir, file)
         await writeFile(p, await page.screenshot({
             fullPage: true,
             type: 'png',
         }))
         await page.close()
     }))
+    await writeFile(path.join(screenshotDir, 'plunder.json'), JSON.stringify(manifest, null, 4))
 }
 
 interface ParsePageResult {

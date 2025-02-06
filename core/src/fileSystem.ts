@@ -1,8 +1,8 @@
 import {mkdir} from 'node:fs/promises'
 import path from 'node:path'
 
-export async function makeUrlOutDir(outDir: string, url: URL): Promise<string> {
-    const p = makeUrlOutDirPath(outDir, url)
+export async function makeOutDirForPageUrl(outDir: string, url: string): Promise<string> {
+    const p = makeUrlOutDirPath(outDir, new URL(url))
     await mkdir(p, {recursive: true})
     return p
 }

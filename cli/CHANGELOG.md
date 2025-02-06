@@ -1,5 +1,6 @@
 ## Unreleased - ReleaseDate
 
+- write webpage screenshot capture manifest to output directory
 - FIX closing browser context after capturing webpage screenshots
 
 ## 0.0.2 - 2025-02-05
