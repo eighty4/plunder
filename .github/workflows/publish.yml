@@ -130,4 +130,4 @@ jobs:
       - name: publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        run: pnpm publish -r --access public --tag ${{ needs.create-git-tags.outputs.npm-tag }}
+        run: pnpm publish --no-git-checks -r --tag ${{ needs.create-git-tags.outputs.npm-tag }}
