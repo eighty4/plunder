@@ -1,5 +1,7 @@
 ## Unreleased - ReleaseDate
 
+- collecting recursive links rewrites relative hrefs over document's base href
+
 ## 0.0.2 - 2025-02-06
 
 - write webpage screenshot capture manifest to output directory

@@ -6,6 +6,7 @@ import {type CssBreakpoint, type CssDimension, parseCssForBreakpoints} from './c
 import {findAllSameOriginAnchorHrefs} from './domParse.js'
 import {makeOutDirForPageUrl} from './fileSystem.js'
 import {type BrowserEngine, BrowserEngineValues, BrowserProcess, launchBrowser} from './playwright.js'
+import {getBaseHref} from './url.js'
 
 export {type BrowserEngine, BrowserEngineValues} from './playwright.ts'
 
@@ -127,8 +128,12 @@ async function parsePagesForCapture(browser: BrowserProcess, opts: CaptureScreen
     async function parsePage(url: string, recursive: boolean): Promise<ParsePageResult> {
         const page = await browser.newPage()
         await page.goto(url)
-        const css = await findAllCss(page)
-        const anchorHrefs = recursive ? await findAllSameOriginAnchorHrefs(page) : undefined
+        const baseHref = await getBaseHref(page)
+        const css = await findAllCss(page, baseHref)
+        let anchorHrefs
+        if (recursive) {
+            anchorHrefs = await findAllSameOriginAnchorHrefs(page, baseHref)
+        }
         await page.close()
         const breakpoints = parseCssForBreakpoints(css).breakpoints
         return {
