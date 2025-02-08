@@ -34,7 +34,13 @@ export function parseCssForBreakpoints(
         breakpoints: foundCss.css.flatMap((css) => {
             const filename = css.uri || `${foundCss.url} [inline#${inlineI++}]`
             const buffer = Buffer.from(css.content)
-            return collectApplicableMediaQueries(filename, buffer)
+            try {
+                return collectApplicableMediaQueries(filename, buffer)
+            } catch (e: any) {
+                // todo capture css errors to write to plunder.json
+                // throw new Error(`lightningcss error processing from webpage '${foundCss.url}'\n\nfilename:${e.fileName}\nsource:${e.source}\nlocation:${e.location}\ndata:${e.data}`)
+                return []
+            }
         }),
     }
 }
@@ -47,6 +53,7 @@ function collectApplicableMediaQueries(
     transform({
         code,
         filename,
+        errorRecovery: true,
         minify: false,
         visitor: {
             MediaQuery(
