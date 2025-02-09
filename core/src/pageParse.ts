@@ -8,7 +8,36 @@ import {getBaseHref} from './url.js'
 export interface ParsePageResult {
     anchorHrefs?: Array<string>
     breakpoints: Array<CssBreakpoint>
-    url: string
+    url: string,
+    errors: Array<ParsePageError>
+}
+
+export interface ParsePageError {
+    parseStep: 'load-page' | 'find-base-href' | 'find-css' | 'find-anchor-hrefs'
+    error: any
+}
+
+class ParsePageRetryer {
+    #url: string
+    errors: Array<ParsePageError> = []
+
+    constructor(url: string) {
+        this.#url = url
+    }
+
+    async try<T>(fn: () => Promise<T>, parseStep: ParsePageError['parseStep']): Promise<T> {
+        const RETRIES = 3
+        let attempts = 0
+        while (attempts < RETRIES) {
+            try {
+                return await fn()
+            } catch (error: any) {
+                this.errors.push({parseStep, error})
+                attempts++
+            }
+        }
+        throw new Error(`retried page parsing step '${parseStep}' ${RETRIES} times on page ${this.#url}`)
+    }
 }
 
 export async function parsePagesForCapture(browser: BrowserProcess, opts: CaptureScreenshotsOptions): Promise<Array<ParsePageResult>> {
@@ -25,12 +54,13 @@ export async function parsePagesForCapture(browser: BrowserProcess, opts: Captur
 
     async function parsePage(url: string, recursive: boolean): Promise<ParsePageResult> {
         const page = await browser.newPage()
-        await page.goto(url)
-        const baseHref = await getBaseHref(page)
-        const css = await findAllCss(page, baseHref)
+        const retryer = new ParsePageRetryer(url)
+        await retryer.try(() => page.goto(url), 'load-page')
+        const baseHref = await retryer.try(() => getBaseHref(page), 'find-base-href')
+        const css = await retryer.try(() => findAllCss(page, baseHref), 'find-css')
         let anchorHrefs
         if (recursive) {
-            anchorHrefs = await findAllSameOriginAnchorHrefs(page, baseHref)
+            anchorHrefs = await retryer.try(() => findAllSameOriginAnchorHrefs(page, baseHref), 'find-anchor-hrefs')
         }
         await page.close()
         const breakpoints = parseCssForBreakpoints(css).breakpoints
@@ -38,6 +68,7 @@ export async function parsePagesForCapture(browser: BrowserProcess, opts: Captur
             anchorHrefs,
             breakpoints,
             url,
+            errors: retryer.errors,
         }
     }
 
