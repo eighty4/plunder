@@ -1,6 +1,29 @@
 import assert from 'node:assert/strict'
 import {describe, it} from 'node:test'
-import {rewriteHref} from './url.ts'
+import {collectUniquePaths, rewriteHref} from './url.ts'
+
+describe('collectUniquePaths', () => {
+
+    it('reduces common path patterns', () => {
+        const actual = collectUniquePaths([
+            // 'https://localhost:5173/',
+            'https://localhost:5173/portfolio',
+            'https://localhost:5173/contact',
+            'https://localhost:5173/contact/form',
+            'https://localhost:5173/article/refurbishing-alley-furniture',
+            'https://localhost:5173/article/making-kombucha',
+            'https://localhost:5173/article/building-a-deck',
+        ])
+        const expected = [
+            // 'https://localhost:5173/',
+            'https://localhost:5173/portfolio',
+            'https://localhost:5173/contact',
+            'https://localhost:5173/contact/form',
+            'https://localhost:5173/article/refurbishing-alley-furniture',
+        ]
+        assert.equal(actual, expected)
+    })
+})
 
 describe('rewriteHref', () => {
 

@@ -2,6 +2,23 @@ import path from 'node:path/posix'
 import url from 'node:url'
 import type {Page} from 'playwright'
 
+export function collectUniquePaths(urls: Array<string>): Array<String> {
+    const paths = urls.map(url => new URL(url).pathname)
+    const pathTree: any = {}
+    paths.forEach(pathname => {
+        const pathParts = pathname.substring(1).split('/')
+        let ptr = pathTree
+        pathParts.forEach(pathPart => {
+            if (!ptr[pathPart]) {
+                ptr[pathPart] = {}
+            }
+            ptr = ptr[pathPart]
+        })
+    })
+    console.log(pathTree)
+    return []
+}
+
 export async function getBaseHref(page: Page): Promise<string | null> {
     const baseLocators = await page.locator('base').all()
     if (!baseLocators.length) {
