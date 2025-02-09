@@ -9,10 +9,32 @@ import {type BrowserEngine, BrowserEngineValues, type BrowserProcess, launchBrow
 export {type BrowserEngine, BrowserEngineValues} from './playwright.ts'
 
 export interface CaptureScreenshotsOptions {
+    /**
+     * The default browser engine to use when a browser engine is not specified by device emulation.
+     */
     browser: BrowserEngine
+
+    /**
+     * Whether to launch browsers headless or graphically in the desktop environment.
+     */
     headless: boolean
+
+    /**
+     * Root out directory for screenshot capturing.
+     *
+     * Webpage URIs will be parsed to create a directory structure of `$outDir/$hostname/$path1/$path2/$path3`.
+     */
     outDir: string
+
+    /**
+     * Whether to query the DOM for anchor tags and traverse websites recursively. All anchor hrefs on the same domain
+     * will be included in screenshot capturing.
+     */
     recursive: boolean
+
+    /**
+     * URLs of webpages to perform screenshot capturing on.
+     */
     urls: Array<string>
 }
 
