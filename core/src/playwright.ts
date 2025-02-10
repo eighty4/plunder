@@ -19,6 +19,15 @@ export async function launchBrowser(opts?: PlaywrightOptions): Promise<BrowserPr
     return new BrowserProcess(await browserType.launch({headless}), opts?.contextLimit)
 }
 
+function getContextLimitEnvVar() {
+    const envVar = process.env['PLUNDER_BROWSER_LIMIT']
+    if (envVar && envVar.length) {
+        try {
+            return parseInt(envVar, 10)
+        } catch (ignore) {}
+    }
+}
+
 export class BrowserProcess {
     #browser: Browser
     #contextLimit: number
@@ -26,7 +35,7 @@ export class BrowserProcess {
 
     constructor(browser: Browser, ctxLimit: number = 8) {
         this.#browser = browser
-        this.#contextLimit = ctxLimit
+        this.#contextLimit = getContextLimitEnvVar() ?? ctxLimit
     }
 
     async newPage(viewport?: BrowserContextOptions['viewport']): Promise<Page> {

@@ -29,6 +29,8 @@ export interface CaptureScreenshotsOptions {
     /**
      * Whether to query the DOM for anchor tags and traverse websites recursively. All anchor hrefs on the same domain
      * will be included in screenshot capturing.
+     *
+     * Use the environment variable PLUNDER_BROWSER_LIMIT to throttle concurrent browser contexts.
      */
     recursive: boolean
 
