@@ -12,6 +12,9 @@ on:
       prerelease:
         required: true
         type: string
+      latest:
+        required: true
+        type: string
       tag:
         type: string
         required: true
@@ -39,5 +42,6 @@ jobs:
             -f name="${{ inputs.package_label }} v${{ inputs.version }}" \
             -f body="[Published to npm]($NPM_URL)" \
             -F draft=false \
+            -F make_latest=${{ inputs.latest }} \
             -F prerelease=${{ inputs.prerelease }} \
             -F generate_release_notes=false)

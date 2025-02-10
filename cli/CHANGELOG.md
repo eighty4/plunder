@@ -1,4 +1,4 @@
-## Unreleased - ReleaseDate
+## Unreleased
 
 - device emulation screenshot capturing for phones and tablets
 - collecting recursive links rewrites relative hrefs over document's base href

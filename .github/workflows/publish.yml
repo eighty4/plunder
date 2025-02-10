@@ -31,15 +31,9 @@ jobs:
       - name: validate only prerelease semver bump for publishing @next
         run: |
           [[ ${{github.event_name}} == "push" ]] && exit 0
-          [[ $SEMVER_BUMP == "prerelease" ]] && exit 1 || exit 0
-      - name: validate changesets for release
-        run: |
-          [[ $SEMVER_BUMP == "prerelease" ]] && exit 0
-          git fetch --tags
-          VERSION=$(npm version $SEMVER_BUMP --no-git-tag-version)
-          PRIOR_RELEASE_TAG=$(curl -s https://api.github.com/repos/eighty4/plunder/releases | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n 1)
-          PRIOR_RELEASE_SHA=$(git rev-list -n 1 "$PRIOR_RELEASE_TAG")
-          git diff $PRIOR_RELEASE_SHA -- CHANGELOG.md | grep "## $VERSION"
+          [[ $SEMVER_BUMP == "prerelease" ]] && exit 1
+          ./.github/workflows/changelog_check.sh cli/CHANGELOG.md
+          ./.github/workflows/changelog_check.sh core/CHANGELOG.md
   verify:
     uses: ./.github/workflows/verify.yml
     needs: [ check-build-params ]
@@ -56,22 +50,35 @@ jobs:
       - id: cli
         run: |
           VERSION=$(npm version ${{ inputs.semver-bump }})
-          echo "tag=cli-$VERSION" >> "$GITHUB_OUTPUT"
+          TAG="cli-$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION:1}" >> "$GITHUB_OUTPUT"
         working-directory: cli
+      - run: ./.github/workflows/changelog_rollover.sh cli/CHANGELOG.md $TAG $VERSION
+        if: inputs.semver-bump != 'prerelease'
+        env:
+          TAG: ${{ steps.cli.outputs.tag }}
+          VERSION: ${{ steps.cli.outputs.version }}
       - id: core
         run: |
           VERSION=$(npm version ${{ inputs.semver-bump }})
-          echo "tag=core-$VERSION" >> "$GITHUB_OUTPUT"
+          TAG="core-$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION:1}" >> "$GITHUB_OUTPUT"
         working-directory: core
+      - run: ./.github/workflows/changelog_rollover.sh core/CHANGELOG.md $TAG $VERSION
+        if: inputs.semver-bump != 'prerelease'
+        env:
+          TAG: ${{ steps.core.outputs.tag }}
+          VERSION: ${{ steps.core.outputs.version }}
       - id: push
         run: |
           [[ $SEMVER_BUMP = "prerelease" ]] && NPM_TAG="next" || NPM_TAG="latest"
           [[ $SEMVER_BUMP = "prerelease" ]] && PRERELEASE="true" || PRERELEASE="false"
           git config --global user.name "Adam McKee"
           git config --global user.email "adam.be.g84d@gmail.com"
-          git add cli/package.json core/package.json
+          git add cli/package.json cli/CHANGELOG.md
+          git add core/package.json core/CHANGELOG.md
           git commit -m "bump @$NPM_TAG package versions"
           git push
           git tag ${{ steps.cli.outputs.tag }}
@@ -95,6 +102,7 @@ jobs:
       package_label: CLI
       package_name: plunder
       prerelease: ${{ needs.create-git-tags.outputs.prerelease }}
+      latest: true
       tag: ${{ needs.create-git-tags.outputs.cli-tag }}
       version: ${{ needs.create-git-tags.outputs.cli-version }}
     secrets: inherit
@@ -107,6 +115,7 @@ jobs:
       package_label: Core
       package_name: plunder-core
       prerelease: ${{ needs.create-git-tags.outputs.prerelease }}
+      latest: false
       tag: ${{ needs.create-git-tags.outputs.core-tag }}
       version: ${{ needs.create-git-tags.outputs.core-version }}
     secrets: inherit
