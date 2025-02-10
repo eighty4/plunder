@@ -1,5 +1,6 @@
 ## Unreleased - ReleaseDate
 
+- device emulation screenshot capturing for phones and tablets
 - collecting recursive links rewrites relative hrefs over document's base href
 
 ## 0.0.3 - 2025-02-06

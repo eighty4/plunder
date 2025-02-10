@@ -1,5 +1,5 @@
 import type {Page} from 'playwright'
-import {rewriteHref} from './url.js'
+import {rewriteHref} from './url.ts'
 
 export async function findAllSameOriginAnchorHrefs(page: Page, baseHref: string | null): Promise<Array<string>> {
     const url = new URL(page.url())

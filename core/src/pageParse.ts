@@ -1,9 +1,9 @@
-import type {CaptureScreenshotsOptions} from './api.js'
-import {findAllCss} from './cssFind.js'
-import {type CssBreakpoint, parseCssForBreakpoints} from './cssParse.js'
-import {findAllSameOriginAnchorHrefs} from './domParse.js'
-import {BrowserProcess} from './playwright.js'
-import {getBaseHref} from './url.js'
+import type {CaptureScreenshotsOptions} from './api.ts'
+import {findAllCss} from './cssFind.ts'
+import {type CssBreakpoint, parseCssForBreakpoints} from './cssParse.ts'
+import {findAllSameOriginAnchorHrefs} from './domParse.ts'
+import {BrowserProcess} from './playwright.ts'
+import {getBaseHref} from './url.ts'
 
 export interface ParsePageResult {
     anchorHrefs?: Array<string>

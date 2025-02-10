@@ -17,6 +17,8 @@ const ascii = {
 
 const knownOpts = {
     'browser': ['chromium', 'firefox', 'webkit'],
+    'device': [Array, String],
+    'devices': [Boolean],
     'not-headless': [Boolean],
     'help': [Boolean],
     'out-dir': [String],
@@ -25,6 +27,7 @@ const knownOpts = {
 
 const shortHands = {
     'b': ['--browser'],
+    'd': ['--device'],
     'h': ['--help'],
     'o': ['--out-dir'],
     'r': ['--recursive'],
@@ -49,6 +52,7 @@ if (parsed.help) {
 } else {
     const opts = {
         browser: parsed['browser'] ?? 'chromium',
+        devices: parsed['devices'] === false ? false : parsed['device']?.length ? parsed['device'] : true,
         outDir: parsed['out-dir'],
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
@@ -112,6 +116,8 @@ ${ascii.bold(ascii.underline('Usage:'))} ${ascii.bold('plunder')} [OPTIONS] URL.
 
 ${ascii.bold(ascii.underline('Options:'))}
   ${ascii.bold('-b')}, ${ascii.bold('--browser')} <BROWSER>    Browser engine [values: chromium (default) | firefox | webkit]
+  ${ascii.bold('-d')}, ${ascii.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
+      ${ascii.bold('--no-devices')}           Excludes device emulation for screenshot capturing [defaults to false]
       ${ascii.bold('--not-headless')}         Launch browser as a headless process [defaults to false]
   ${ascii.bold('-o')}, ${ascii.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
   ${ascii.bold('-r')}, ${ascii.bold('--recursive')}            Recursively plunders links to pages on same domain [defaults to false]

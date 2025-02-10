@@ -3,7 +3,7 @@ import {
     type ReturnedMediaQuery,
     transform,
 } from 'lightningcss'
-import type {FindCssResult} from './cssFind.js'
+import type {FindCssResult} from './cssFind.ts'
 
 // todo convert rem to px
 export type CssUom = 'px' | 'rem'

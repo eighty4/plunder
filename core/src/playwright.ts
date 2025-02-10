@@ -1,5 +1,5 @@
 import type {Browser, Page} from 'playwright'
-import type {BrowserContextOptions, BrowserType} from 'playwright-core'
+import type {BrowserType} from 'playwright-core'
 
 export const BrowserEngineValues = ['chromium', 'firefox', 'webkit'] as const
 
@@ -9,6 +9,14 @@ export interface PlaywrightOptions {
     browser?: BrowserEngine
     contextLimit?: number
     headless?: boolean
+}
+
+export interface BrowserOptions {
+    deviceScaleFactor?: number
+    viewport?: {
+        height: number
+        width: number
+    }
 }
 
 export async function launchBrowser(opts?: PlaywrightOptions): Promise<BrowserProcess> {
@@ -31,20 +39,20 @@ function getContextLimitEnvVar() {
 export class BrowserProcess {
     #browser: Browser
     #contextLimit: number
-    #queued: Array<{ res: (page: Page) => void, viewport?: BrowserContextOptions['viewport'] }> = []
+    #queued: Array<{ res: (page: Page) => void, opts?: BrowserOptions }> = []
 
     constructor(browser: Browser, ctxLimit: number = 8) {
         this.#browser = browser
         this.#contextLimit = getContextLimitEnvVar() ?? ctxLimit
     }
 
-    async newPage(viewport?: BrowserContextOptions['viewport']): Promise<Page> {
+    async newPage(opts?: BrowserOptions): Promise<Page> {
         if (this.#browser.contexts().length > this.#contextLimit) {
             return new Promise((res) => {
-                this.#queued.push({res, viewport})
+                this.#queued.push({res, opts})
             })
         } else {
-            return this.#newPage(viewport)
+            return this.#newPage(opts)
         }
     }
 
@@ -53,9 +61,11 @@ export class BrowserProcess {
         return this.#browser.close()
     }
 
-    async #newPage(viewport?: BrowserContextOptions['viewport']): Promise<Page> {
+    async #newPage(opts?: BrowserOptions): Promise<Page> {
         this.#contextLimit++
-        const page = await this.#browser.newPage({viewport})
+        const page = await this.#browser.newPage({
+            viewport: opts?.viewport,
+        })
         page.on('close', this.#onPageClose)
         return page
     }
@@ -68,8 +78,8 @@ export class BrowserProcess {
 
     #resolveQueued() {
         if (this.#queued.length) {
-            const {res, viewport} = this.#queued.pop()!
-            this.#newPage(viewport).then(res)
+            const {res, opts} = this.#queued.pop()!
+            this.#newPage(opts).then(res)
         }
     }
 }
