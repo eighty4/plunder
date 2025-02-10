@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.0.4 - 2025-02-10
+
 - device emulation screenshot capturing for phones and tablets
 - collecting recursive links rewrites relative hrefs over document's base href
 
@@ -16,7 +18,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.3...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.4...HEAD
+[0.0.4]: https://github.com/eighty4/plunder/compare/cli-v0.0.3...cli-v0.0.4
 [0.0.3]: https://github.com/eighty4/plunder/compare/cli-v0.0.2...cli-v0.0.3
 [0.0.2]: https://github.com/eighty4/plunder/compare/cli-v0.0.1...cli-v0.0.2
 [0.0.1]: https://github.com/eighty4/plunder/releases/tag/cli-v0.0.1
