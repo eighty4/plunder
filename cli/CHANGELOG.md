@@ -1,5 +1,7 @@
 ## Unreleased
 
+- CLI updates progress of CSS parsing and screenshot capture
+
 ## 0.0.4 - 2025-02-10
 
 - device emulation screenshot capturing for phones and tablets

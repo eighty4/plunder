@@ -1,5 +1,7 @@
 ## Unreleased
 
+- progress update callback on capture API options
+
 ## 0.0.3 - 2025-02-10
 
 - device emulation screenshot capturing for phones and tablets

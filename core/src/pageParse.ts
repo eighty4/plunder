@@ -1,4 +1,5 @@
 import type {CaptureScreenshotsOptions} from './api.ts'
+import type {CaptureProgressUpdater} from './captureUpdater.js'
 import {findAllCss} from './cssFind.ts'
 import {type CssBreakpoint, parseCssForBreakpoints} from './cssParse.ts'
 import {findAllSameOriginAnchorHrefs} from './domParse.ts'
@@ -11,11 +12,16 @@ export interface ParsePageResult {
     url: string
 }
 
-export async function parsePagesForCapture(browser: BrowserProcess, opts: CaptureScreenshotsOptions): Promise<Array<ParsePageResult>> {
+export async function parsePagesForCapture(
+    browser: BrowserProcess,
+    opts: CaptureScreenshotsOptions,
+    updater: CaptureProgressUpdater,
+): Promise<Array<ParsePageResult>> {
     const parsingPages: Record<string, Promise<ParsePageResult>> = {}
     const parsedPages: Array<ParsePageResult> = []
 
     function initParsingPages(urls: Array<string>) {
+        updater.addToParsePageTotal(urls.length)
         for (const url of urls) {
             if (typeof parsingPages[url] === 'undefined') {
                 parsingPages[url] = parsePage(url, opts.recursive)
@@ -44,6 +50,7 @@ export async function parsePagesForCapture(browser: BrowserProcess, opts: Captur
     async function drainCompletedParsingPages() {
         while (Object.keys(parsingPages).length) {
             const parsedPage = await Promise.race(Object.values(parsingPages))
+            updater.markPageParsed()
             delete parsingPages[parsedPage.url]
             if (opts.recursive && parsedPage.anchorHrefs?.length) {
                 initParsingPages(parsedPage.anchorHrefs!)

@@ -1,6 +1,8 @@
 import {writeFile} from 'node:fs/promises'
 import path from 'node:path'
 import z, {ZodError} from 'zod'
+import type {CaptureProgressCallback} from './captureProgress.js'
+import {CaptureProgressUpdater} from './captureUpdater.js'
 import {type CssBreakpoint, type CssDimension} from './cssParse.ts'
 import {resolveDeviceDefinitions} from './devices.ts'
 import {makeOutDirForPageUrl} from './fileSystem.ts'
@@ -13,6 +15,7 @@ import {
     launchBrowser,
 } from './playwright.ts'
 
+export * from './captureProgress.ts'
 export {type BrowserEngine, BrowserEngineValues} from './playwright.ts'
 
 export interface CaptureScreenshotsOptions {
@@ -44,6 +47,11 @@ export interface CaptureScreenshotsOptions {
     outDir: string
 
     /**
+     * Callback that receives progress updates from screenshot capturing process.
+     */
+    progress: CaptureProgressCallback
+
+    /**
      * Whether to query the DOM for anchor tags and traverse websites recursively. All anchor hrefs on the same domain
      * will be included in screenshot capturing.
      *
@@ -69,6 +77,7 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
             devices: z.union([z.boolean(), z.array(z.string())]),
             headless: z.boolean(),
             outDir: z.string(),
+            progress: z.function(),
             recursive: z.boolean(),
             urls: z.array(z.string().url()),
         }).strict().parse(opts)
@@ -83,11 +92,13 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
 
 export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
     validateCaptureScreenshotsOptions(opts)
+    const updater = new CaptureProgressUpdater(opts.progress)
     const browser = await launchBrowser(opts)
     try {
-        const pages = await parsePagesForCapture(browser, opts)
+        const pages = await parsePagesForCapture(browser, opts, updater)
+        updater.markPageParsingCompleted()
         await Promise.all(pages.map(parsedPage => captureScreenshotsForPage(
-            browser, parsedPage.url, parsedPage.breakpoints, opts)))
+            browser, parsedPage.url, parsedPage.breakpoints, opts, updater)))
     } finally {
         await browser.close()
     }
@@ -119,12 +130,15 @@ export async function captureScreenshotsForPage(
     url: string,
     breakpoints: Array<CssBreakpoint>,
     opts: CaptureScreenshotsOptions,
+    updater: CaptureProgressUpdater
 ): Promise<void> {
     const manifest = resolveScreenshotManifest(url, breakpoints, opts)
+    updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const outDir = await makeOutDirForPageUrl(opts.outDir, url)
     const takingScreenshots = Object.entries(manifest.screenshots)
-        .map(([file, browserOpts]) => {
-            return screenshot(browser, outDir, url, file, browserOpts)
+        .map(async ([file, browserOpts]) => {
+            await screenshot(browser, outDir, url, file, browserOpts)
+            updater.markScreenshotCompleted()
         })
     await Promise.all(takingScreenshots)
     await writeFile(path.join(outDir, 'plunder.json'), JSON.stringify(manifest, null, 4))
