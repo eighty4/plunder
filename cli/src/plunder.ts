@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import {stat} from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
 import nopt from 'nopt'
-import {z} from 'zod'
+import { z } from 'zod'
 import {
     captureScreenshots,
     type CaptureScreenshotsOptions,
@@ -19,28 +19,33 @@ const ansi = {
             seq += `\u001b[A`
         }
         console.log(seq + s)
-    }
+    },
 }
 
 const knownOpts = {
-    'browser': ['chromium', 'firefox', 'webkit'],
-    'device': [Array, String],
-    'devices': [Boolean],
+    browser: ['chromium', 'firefox', 'webkit'],
+    device: [Array, String],
+    devices: [Boolean],
     'not-headless': [Boolean],
-    'help': [Boolean],
+    help: [Boolean],
     'out-dir': [String],
-    'recursive': [Boolean],
+    recursive: [Boolean],
 }
 
 const shortHands = {
-    'b': ['--browser'],
-    'd': ['--device'],
-    'h': ['--help'],
-    'o': ['--out-dir'],
-    'r': ['--recursive'],
+    b: ['--browser'],
+    d: ['--device'],
+    h: ['--help'],
+    o: ['--out-dir'],
+    r: ['--recursive'],
 }
 
-nopt.invalidHandler = function (key: string, value: string, _type: any, data: Record<string, any>) {
+nopt.invalidHandler = function (
+    key: string,
+    value: string,
+    _type: any,
+    data: Record<string, any>,
+) {
     if (data.help) {
         helpPrint()
     } else {
@@ -59,7 +64,12 @@ if (parsed.help) {
 } else {
     const opts: CaptureScreenshotsOptions = {
         browser: parsed['browser'] ?? 'chromium',
-        devices: parsed['devices'] === false ? false : parsed['device']?.length ? parsed['device'] : true,
+        devices:
+            parsed['devices'] === false
+                ? false
+                : parsed['device']?.length
+                  ? parsed['device']
+                  : true,
         outDir: parsed['out-dir'],
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
@@ -68,15 +78,21 @@ if (parsed.help) {
         progress: function (update) {
             switch (update.step) {
                 case 'parsing':
-                    ansi.rewriteLines(1, `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages parsed`)
+                    ansi.rewriteLines(
+                        1,
+                        `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages parsed`,
+                    )
                     break
                 case 'capturing':
-                    ansi.rewriteLines(1, `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`)
+                    ansi.rewriteLines(
+                        1,
+                        `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`,
+                    )
                     break
                 case 'completed':
                     ansi.rewriteLines(1, 'Capturing screenshots completed!')
             }
-        }
+        },
     }
 
     await validateOpts(opts)

@@ -1,12 +1,12 @@
-import {writeFile} from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import z, {ZodError} from 'zod'
-import type {CaptureProgressCallback} from './captureProgress.js'
-import {CaptureProgressUpdater} from './captureUpdater.js'
-import {type CssBreakpoint, type CssDimension} from './cssParse.ts'
-import {resolveDeviceDefinitions} from './devices.ts'
-import {makeOutDirForPageUrl} from './fileSystem.ts'
-import {parsePagesForCapture} from './pageParse.ts'
+import z, { ZodError } from 'zod'
+import type { CaptureProgressCallback } from './captureProgress.js'
+import { CaptureProgressUpdater } from './captureUpdater.js'
+import { type CssBreakpoint, type CssDimension } from './cssParse.ts'
+import { resolveDeviceDefinitions } from './devices.ts'
+import { makeOutDirForPageUrl } from './fileSystem.ts'
+import { parsePagesForCapture } from './pageParse.ts'
 import {
     type BrowserEngine,
     BrowserEngineValues,
@@ -16,7 +16,7 @@ import {
 } from './playwright.ts'
 
 export * from './captureProgress.ts'
-export {type BrowserEngine, BrowserEngineValues} from './playwright.ts'
+export { type BrowserEngine, BrowserEngineValues } from './playwright.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
@@ -66,8 +66,7 @@ export interface CaptureScreenshotsOptions {
 }
 
 export class InvalidCaptureScreenshotsOption {
-    constructor(readonly invalidFields: Array<string>) {
-    }
+    constructor(readonly invalidFields: Array<string>) {}
 }
 
 function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
@@ -80,10 +79,14 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
             progress: z.function(),
             recursive: z.boolean(),
             urls: z.array(z.string().url()),
-        }).strict().parse(opts)
+        })
+            .strict()
+            .parse(opts)
     } catch (e: any) {
         if (e instanceof ZodError) {
-            throw new InvalidCaptureScreenshotsOption(e.issues.map(i => i.path.join('.')))
+            throw new InvalidCaptureScreenshotsOption(
+                e.issues.map(i => i.path.join('.')),
+            )
         } else {
             throw e
         }
@@ -97,8 +100,17 @@ export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
     try {
         const pages = await parsePagesForCapture(browser, opts, updater)
         updater.markPageParsingCompleted()
-        await Promise.all(pages.map(parsedPage => captureScreenshotsForPage(
-            browser, parsedPage.url, parsedPage.breakpoints, opts, updater)))
+        await Promise.all(
+            pages.map(parsedPage =>
+                captureScreenshotsForPage(
+                    browser,
+                    parsedPage.url,
+                    parsedPage.breakpoints,
+                    opts,
+                    updater,
+                ),
+            ),
+        )
     } finally {
         await browser.close()
     }
@@ -106,8 +118,8 @@ export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
 
 // written to webpage out dir
 interface CaptureScreenshotManifest {
-    url: string,
-    devices: Record<string, DeviceDetails>,
+    url: string
+    devices: Record<string, DeviceDetails>
     screenshots: Record<string, BrowserOptions>
     breakpoints: Array<BreakpointDetails>
 }
@@ -130,18 +142,22 @@ export async function captureScreenshotsForPage(
     url: string,
     breakpoints: Array<CssBreakpoint>,
     opts: CaptureScreenshotsOptions,
-    updater: CaptureProgressUpdater
+    updater: CaptureProgressUpdater,
 ): Promise<void> {
     const manifest = resolveScreenshotManifest(url, breakpoints, opts)
     updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const outDir = await makeOutDirForPageUrl(opts.outDir, url)
-    const takingScreenshots = Object.entries(manifest.screenshots)
-        .map(async ([file, browserOpts]) => {
+    const takingScreenshots = Object.entries(manifest.screenshots).map(
+        async ([file, browserOpts]) => {
             await screenshot(browser, outDir, url, file, browserOpts)
             updater.markScreenshotCompleted()
-        })
+        },
+    )
     await Promise.all(takingScreenshots)
-    await writeFile(path.join(outDir, 'plunder.json'), JSON.stringify(manifest, null, 4))
+    await writeFile(
+        path.join(outDir, 'plunder.json'),
+        JSON.stringify(manifest, null, 4),
+    )
 }
 
 async function screenshot(
@@ -154,10 +170,13 @@ async function screenshot(
     const page = await browser.newPage(opts)
     await page.goto(url)
     const p = path.join(outDir, file)
-    await writeFile(p, await page.screenshot({
-        fullPage: true,
-        type: 'png',
-    }))
+    await writeFile(
+        p,
+        await page.screenshot({
+            fullPage: true,
+            type: 'png',
+        }),
+    )
     await page.close()
 }
 
@@ -166,33 +185,59 @@ function resolveScreenshotManifest(
     breakpoints: Array<CssBreakpoint>,
     opts: CaptureScreenshotsOptions,
 ): CaptureScreenshotManifest {
-    const manifest: CaptureScreenshotManifest = {url, screenshots: {}, devices: {}, breakpoints: []}
+    const manifest: CaptureScreenshotManifest = {
+        url,
+        screenshots: {},
+        devices: {},
+        breakpoints: [],
+    }
     if (opts.devices === true) {
-
     }
     const devices = resolveDeviceDefinitions(opts.devices)
-    for (const [deviceLabel, {landscape, portrait}] of Object.entries(devices)) {
-        const device: DeviceDetails = {landscape, portrait, screenshots: {}}
+    for (const [deviceLabel, { landscape, portrait }] of Object.entries(
+        devices,
+    )) {
+        const device: DeviceDetails = { landscape, portrait, screenshots: {} }
         const filenamePrefix = deviceLabel
-            .replaceAll(' ', '-').replaceAll('(', '-').replaceAll(')', '-').replaceAll('--', '-').toLowerCase()
-        const landscapeFilename = `${filenamePrefix}_landscape.png`.replaceAll('-_', '_')
-        const portraitFilename = `${filenamePrefix}_portrait.png`.replaceAll('-_', '_')
-        manifest.screenshots[landscapeFilename] = device.screenshots[landscapeFilename] = device.landscape
-        manifest.screenshots[portraitFilename] = device.screenshots[portraitFilename] = device.portrait
+            .replaceAll(' ', '-')
+            .replaceAll('(', '-')
+            .replaceAll(')', '-')
+            .replaceAll('--', '-')
+            .toLowerCase()
+        const landscapeFilename = `${filenamePrefix}_landscape.png`.replaceAll(
+            '-_',
+            '_',
+        )
+        const portraitFilename = `${filenamePrefix}_portrait.png`.replaceAll(
+            '-_',
+            '_',
+        )
+        manifest.screenshots[landscapeFilename] = device.screenshots[
+            landscapeFilename
+        ] = device.landscape
+        manifest.screenshots[portraitFilename] = device.screenshots[
+            portraitFilename
+        ] = device.portrait
         manifest.devices[deviceLabel] = device
     }
     for (const breakpoint of breakpoints) {
         const viewportWidths: Array<number> = []
         if (breakpoint.lowerBound) {
-            viewportWidths.push(breakpoint.lowerBound.value, breakpoint.lowerBound.value - 1)
+            viewportWidths.push(
+                breakpoint.lowerBound.value,
+                breakpoint.lowerBound.value - 1,
+            )
         }
         if (breakpoint.upperBound) {
-            viewportWidths.push(breakpoint.upperBound.value, breakpoint.upperBound.value + 1)
+            viewportWidths.push(
+                breakpoint.upperBound.value,
+                breakpoint.upperBound.value + 1,
+            )
         }
         const screenshots: Record<string, BrowserOptions> = {}
         for (const width of viewportWidths) {
             const file = `w_${width}.png`
-            const browserOpts = {viewport: {height: 600, width}}
+            const browserOpts = { viewport: { height: 600, width } }
             if (!manifest.screenshots[file]) {
                 manifest.screenshots[file] = browserOpts
             }

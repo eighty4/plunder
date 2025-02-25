@@ -1,10 +1,10 @@
-import type {CaptureScreenshotsOptions} from './api.ts'
-import type {CaptureProgressUpdater} from './captureUpdater.js'
-import {findAllCss} from './cssFind.ts'
-import {type CssBreakpoint, parseCssForBreakpoints} from './cssParse.ts'
-import {findAllSameOriginAnchorHrefs} from './domParse.ts'
-import {BrowserProcess} from './playwright.ts'
-import {getBaseHref} from './url.ts'
+import type { CaptureScreenshotsOptions } from './api.ts'
+import type { CaptureProgressUpdater } from './captureUpdater.js'
+import { findAllCss } from './cssFind.ts'
+import { type CssBreakpoint, parseCssForBreakpoints } from './cssParse.ts'
+import { findAllSameOriginAnchorHrefs } from './domParse.ts'
+import { BrowserProcess } from './playwright.ts'
+import { getBaseHref } from './url.ts'
 
 export interface ParsePageResult {
     anchorHrefs?: Array<string>
@@ -29,7 +29,10 @@ export async function parsePagesForCapture(
         }
     }
 
-    async function parsePage(url: string, recursive: boolean): Promise<ParsePageResult> {
+    async function parsePage(
+        url: string,
+        recursive: boolean,
+    ): Promise<ParsePageResult> {
         const page = await browser.newPage()
         await page.goto(url)
         const baseHref = await getBaseHref(page)

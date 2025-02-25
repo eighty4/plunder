@@ -1,12 +1,14 @@
-import {devices} from 'playwright-core'
-import type {BrowserOptions} from './playwright.ts'
+import { devices } from 'playwright-core'
+import type { BrowserOptions } from './playwright.ts'
 
 export interface DeviceDefinition {
     landscape: BrowserOptions
     portrait: BrowserOptions
 }
 
-export function resolveDeviceDefinitions(query: boolean | Array<string>): Record<string, DeviceDefinition> {
+export function resolveDeviceDefinitions(
+    query: boolean | Array<string>,
+): Record<string, DeviceDefinition> {
     if (query === false) {
         return {}
     } else if (query === true) {
@@ -36,11 +38,17 @@ function getDefaultDeviceDefinitions(): Record<string, DeviceDefinition> {
     ])
 }
 
-function searchDeviceDefinitions(deviceQueries: Array<string>): Record<string, DeviceDefinition> {
-    const searchableDeviceQueries = deviceQueries.map(deviceQuery => deviceQuery.toLowerCase())
+function searchDeviceDefinitions(
+    deviceQueries: Array<string>,
+): Record<string, DeviceDefinition> {
+    const searchableDeviceQueries = deviceQueries.map(deviceQuery =>
+        deviceQuery.toLowerCase(),
+    )
     const searchableDeviceLabels = getSearchableDeviceRecord()
     const deviceLabelMatches: Array<keyof typeof devices> = []
-    for (const [searchable, deviceLabel] of Object.entries(searchableDeviceLabels)) {
+    for (const [searchable, deviceLabel] of Object.entries(
+        searchableDeviceLabels,
+    )) {
         for (const query of searchableDeviceQueries) {
             if (searchable.includes(query)) {
                 deviceLabelMatches.push(deviceLabel)
@@ -61,7 +69,9 @@ function getSearchableDeviceRecord(): Record<string, keyof typeof devices> {
     return result
 }
 
-function buildDeviceDefinitions(deviceLabels: Array<keyof typeof devices>): Record<string, DeviceDefinition> {
+function buildDeviceDefinitions(
+    deviceLabels: Array<keyof typeof devices>,
+): Record<string, DeviceDefinition> {
     const result: Record<string, DeviceDefinition> = {}
     for (const deviceLabel of deviceLabels) {
         const portrait = devices[deviceLabel]
@@ -71,14 +81,14 @@ function buildDeviceDefinitions(deviceLabels: Array<keyof typeof devices>): Reco
                 viewport: {
                     height: landscape.viewport.height,
                     width: landscape.viewport.width,
-                }
+                },
             },
             portrait: {
                 viewport: {
                     height: portrait.viewport.height,
                     width: portrait.viewport.width,
-                }
-            }
+                },
+            },
         }
     }
     return result

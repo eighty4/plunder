@@ -1,12 +1,12 @@
-import type {CaptureProgress, CaptureProgressStep} from './captureProgress.js'
+import type { CaptureProgress, CaptureProgressStep } from './captureProgress.js'
 
 export class CaptureProgressUpdater {
     #step: CaptureProgressStep = 'parsing'
-    readonly #pages: { total: number, completed: number } = {
+    readonly #pages: { total: number; completed: number } = {
         total: 0,
         completed: 0,
     }
-    readonly #screenshots: { total: number, completed: number } = {
+    readonly #screenshots: { total: number; completed: number } = {
         total: 0,
         completed: 0,
     }
@@ -72,7 +72,7 @@ export class CaptureProgressUpdater {
                     },
                 }
             case 'completed':
-                return {step: 'completed'}
+                return { step: 'completed' }
         }
     }
 }

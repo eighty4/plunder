@@ -1,7 +1,7 @@
-import {describe, it} from 'node:test'
+import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import {devices} from 'playwright-core'
-import {resolveDeviceDefinitions} from './devices.ts'
+import { devices } from 'playwright-core'
+import { resolveDeviceDefinitions } from './devices.ts'
 
 describe('resolveDeviceDefinitions', () => {
     it('matches some iPhones', () => {
