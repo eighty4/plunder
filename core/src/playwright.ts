@@ -1,9 +1,9 @@
-import type {Browser, Page} from 'playwright'
-import type {BrowserType} from 'playwright-core'
+import type { Browser, Page } from 'playwright'
+import type { BrowserType } from 'playwright-core'
 
 export const BrowserEngineValues = ['chromium', 'firefox', 'webkit'] as const
 
-export type BrowserEngine = typeof BrowserEngineValues[number]
+export type BrowserEngine = (typeof BrowserEngineValues)[number]
 
 export interface PlaywrightOptions {
     browser?: BrowserEngine
@@ -19,12 +19,17 @@ export interface BrowserOptions {
     }
 }
 
-export async function launchBrowser(opts?: PlaywrightOptions): Promise<BrowserProcess> {
+export async function launchBrowser(
+    opts?: PlaywrightOptions,
+): Promise<BrowserProcess> {
     const browser = opts?.browser || 'chromium'
     const headless = opts?.headless ?? true
     await installPlaywrightBrowser(browser, headless)
     const browserType = await resolvePlaywrightBrowserType(browser)
-    return new BrowserProcess(await browserType.launch({headless}), opts?.contextLimit)
+    return new BrowserProcess(
+        await browserType.launch({ headless }),
+        opts?.contextLimit,
+    )
 }
 
 function getContextLimitEnvVar() {
@@ -39,7 +44,7 @@ function getContextLimitEnvVar() {
 export class BrowserProcess {
     #browser: Browser
     #contextLimit: number
-    #queued: Array<{ res: (page: Page) => void, opts?: BrowserOptions }> = []
+    #queued: Array<{ res: (page: Page) => void; opts?: BrowserOptions }> = []
 
     constructor(browser: Browser, ctxLimit: number = 8) {
         this.#browser = browser
@@ -48,8 +53,8 @@ export class BrowserProcess {
 
     async newPage(opts?: BrowserOptions): Promise<Page> {
         if (this.#browser.contexts().length > this.#contextLimit) {
-            return new Promise((res) => {
-                this.#queued.push({res, opts})
+            return new Promise(res => {
+                this.#queued.push({ res, opts })
             })
         } else {
             return this.#newPage(opts)
@@ -78,19 +83,28 @@ export class BrowserProcess {
 
     #resolveQueued() {
         if (this.#queued.length) {
-            const {res, opts} = this.#queued.pop()!
+            const { res, opts } = this.#queued.pop()!
             this.#newPage(opts).then(res)
         }
     }
 }
 
-async function installPlaywrightBrowser(browser: BrowserEngine, headless: boolean) {
+async function installPlaywrightBrowser(
+    browser: BrowserEngine,
+    headless: boolean,
+) {
     // @ts-ignore
-    await (await import('playwright-core/lib/server'))
-        .installBrowsersForNpmInstall([resolvePlaywrightBrowserEngine(browser, headless)])
+    await (
+        await import('playwright-core/lib/server')
+    ).installBrowsersForNpmInstall([
+        resolvePlaywrightBrowserEngine(browser, headless),
+    ])
 }
 
-function resolvePlaywrightBrowserEngine(browser: BrowserEngine, headless: boolean): string {
+function resolvePlaywrightBrowserEngine(
+    browser: BrowserEngine,
+    headless: boolean,
+): string {
     switch (browser) {
         case 'chromium':
             if (headless) {
@@ -102,11 +116,12 @@ function resolvePlaywrightBrowserEngine(browser: BrowserEngine, headless: boolea
             return 'firefox'
         case 'webkit':
             return 'webkit'
-
     }
 }
 
-async function resolvePlaywrightBrowserType(browser: BrowserEngine): Promise<BrowserType> {
+async function resolvePlaywrightBrowserType(
+    browser: BrowserEngine,
+): Promise<BrowserType> {
     switch (browser) {
         case 'chromium':
             return (await import('playwright')).chromium

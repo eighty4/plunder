@@ -3,7 +3,7 @@ import {
     type ReturnedMediaQuery,
     transform,
 } from 'lightningcss'
-import type {FindCssResult} from './cssFind.ts'
+import type { FindCssResult } from './cssFind.ts'
 
 // todo convert rem to px
 export type CssUom = 'px' | 'rem'
@@ -22,7 +22,7 @@ export interface CssBreakpoint {
 
 export interface ParseCssResult {
     breakpoints: Array<CssBreakpoint>
-    url: string;
+    url: string
 }
 
 export function parseCssForBreakpoints(
@@ -31,7 +31,7 @@ export function parseCssForBreakpoints(
     let inlineI = 0
     return {
         url: foundCss.url,
-        breakpoints: foundCss.css.flatMap((css) => {
+        breakpoints: foundCss.css.flatMap(css => {
             const filename = css.uri || `${foundCss.url} [inline#${inlineI++}]`
             const buffer = Buffer.from(css.content)
             try {
@@ -66,14 +66,23 @@ function collectApplicableMediaQueries(
                             query.condition?.value?.startOperator,
                             getCssDimension(query.condition?.value?.start),
                             query.condition?.value?.endOperator,
-                            getCssDimension(query.condition?.value?.end))
+                            getCssDimension(query.condition?.value?.end),
+                        )
                         if (breakpoint) {
                             breakpoints.push(breakpoint)
                         }
                     } else if (query.condition?.value?.type === 'range') {
                         const operator = query.condition?.value?.operator
-                        const dimension = getCssDimension(query.condition?.value?.value)
-                        breakpoints.push(createCssBreakpointFromRange(filename, operator, dimension))
+                        const dimension = getCssDimension(
+                            query.condition?.value?.value,
+                        )
+                        breakpoints.push(
+                            createCssBreakpointFromRange(
+                                filename,
+                                operator,
+                                dimension,
+                            ),
+                        )
                     }
                 }
             },
@@ -90,7 +99,7 @@ function getCssDimension(obj: any): CssDimension {
                 throw new Error()
             }
             const value = obj.value?.value?.value
-            return {uom, value}
+            return { uom, value }
         }
     }
     throw new Error()
@@ -149,7 +158,11 @@ function createCssBreakpointFromInterval(
     }
 }
 
-function createCssBreakpointFromRange(filename: string, operator: any, dimension: CssDimension): CssBreakpoint {
+function createCssBreakpointFromRange(
+    filename: string,
+    operator: any,
+    dimension: CssDimension,
+): CssBreakpoint {
     let lowerBound: CssDimension | undefined
     let upperBound: CssDimension | undefined
     switch (operator) {
