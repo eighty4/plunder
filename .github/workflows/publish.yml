@@ -103,6 +103,7 @@ jobs:
       latest: true
       tag: ${{ needs.create-git-tags.outputs.cli-tag }}
       version: ${{ needs.create-git-tags.outputs.cli-version }}
+      changelog: cli/CHANGELOG.md
     secrets: inherit
   create-core-gh-release:
     needs: [create-git-tags]
@@ -116,6 +117,7 @@ jobs:
       latest: false
       tag: ${{ needs.create-git-tags.outputs.core-tag }}
       version: ${{ needs.create-git-tags.outputs.core-version }}
+      changelog: core/CHANGELOG.md
     secrets: inherit
   npm-publish:
     name: publish to npm
