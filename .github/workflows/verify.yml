@@ -3,6 +3,7 @@ run-name: Verify ${{ github.ref }}
 on:
   pull_request:
     branches: [ main ]
+  push:
   workflow_call:
 jobs:
   verify:
