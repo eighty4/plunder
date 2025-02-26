@@ -48,16 +48,24 @@ export function getDeviceLabelSearchMatches(
     return Object.keys(searchDeviceDefinitions(deviceQueries)).sort()
 }
 
-export interface DeviceDefinition {
+export type DeviceDefinition = {
+    label: string
     landscape: BrowserOptions
-    portrait: BrowserOptions
-}
+} & (
+    | {
+          type: 'desktop'
+      }
+    | {
+          type: 'mobile'
+          portrait: BrowserOptions
+      }
+)
 
 export function resolveDeviceDefinitions(
     query: boolean | Array<string>,
-): Record<string, DeviceDefinition> {
+): Array<DeviceDefinition> {
     if (query === false) {
-        return {}
+        return []
     } else if (query === true) {
         return getDefaultDeviceDefinitions()
     } else if (Array.isArray(query)) {
@@ -67,13 +75,13 @@ export function resolveDeviceDefinitions(
     }
 }
 
-function getDefaultDeviceDefinitions(): Record<string, DeviceDefinition> {
+function getDefaultDeviceDefinitions(): Array<DeviceDefinition> {
     return buildDeviceDefinitions(defaultDeviceLabals)
 }
 
 function searchDeviceDefinitions(
     deviceQueries: Array<string>,
-): Record<string, DeviceDefinition> {
+): Array<DeviceDefinition> {
     const searchableDeviceQueries = deviceQueries.map(deviceQuery =>
         deviceQuery.toLowerCase(),
     )
@@ -104,25 +112,35 @@ function getSearchableDeviceRecord(): Record<string, keyof typeof devices> {
 
 function buildDeviceDefinitions(
     deviceLabels: Readonly<Array<keyof typeof devices>>,
-): Record<string, DeviceDefinition> {
-    const result: Record<string, DeviceDefinition> = {}
+): Array<DeviceDefinition> {
+    const result: Array<DeviceDefinition> = []
     for (const deviceLabel of deviceLabels) {
-        const portrait = devices[deviceLabel]
-        const landscape = devices[deviceLabel + ' landscape']
-        result[deviceLabel] = {
-            landscape: {
-                viewport: {
-                    height: landscape.viewport.height,
-                    width: landscape.viewport.width,
-                },
-            },
-            portrait: {
-                viewport: {
-                    height: portrait.viewport.height,
-                    width: portrait.viewport.width,
-                },
-            },
-        }
+        const primary = getBrowserOptions(deviceLabel)
+        const landscapeLabel = deviceLabel + ' landscape'
+        result.push(
+            devices[landscapeLabel]
+                ? {
+                      label: deviceLabel as string,
+                      type: 'mobile',
+                      landscape: getBrowserOptions(landscapeLabel),
+                      portrait: primary,
+                  }
+                : {
+                      label: deviceLabel as string,
+                      type: 'desktop',
+                      landscape: primary,
+                  },
+        )
     }
     return result
+}
+
+function getBrowserOptions(deviceLabel: keyof typeof devices): BrowserOptions {
+    const descriptor = devices[deviceLabel]
+    return {
+        viewport: {
+            height: descriptor.viewport.height,
+            width: descriptor.viewport.width,
+        },
+    }
 }

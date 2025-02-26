@@ -16,7 +16,7 @@ import {
 } from './playwright.ts'
 
 export * from './captureProgress.ts'
-export { type BrowserEngine, BrowserEngineValues } from './playwright.ts'
+export { BrowserEngineValues, type BrowserEngine } from './playwright.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
@@ -126,7 +126,7 @@ interface CaptureScreenshotManifest {
 
 interface DeviceDetails {
     landscape: BrowserOptions
-    portrait: BrowserOptions
+    portrait?: BrowserOptions
     screenshots: Record<string, BrowserOptions>
 }
 
@@ -193,32 +193,39 @@ function resolveScreenshotManifest(
     }
     if (opts.devices === true) {
     }
-    const devices = resolveDeviceDefinitions(opts.devices)
-    for (const [deviceLabel, { landscape, portrait }] of Object.entries(
-        devices,
-    )) {
-        const device: DeviceDetails = { landscape, portrait, screenshots: {} }
-        const filenamePrefix = deviceLabel
+    for (const deviceDefinition of resolveDeviceDefinitions(opts.devices)) {
+        const deviceScreenshots: Record<string, BrowserOptions> = {}
+        const filenamePrefix = deviceDefinition.label
             .replaceAll(' ', '-')
             .replaceAll('(', '-')
             .replaceAll(')', '-')
             .replaceAll('--', '-')
             .toLowerCase()
-        const landscapeFilename = `${filenamePrefix}_landscape.png`.replaceAll(
-            '-_',
-            '_',
-        )
-        const portraitFilename = `${filenamePrefix}_portrait.png`.replaceAll(
-            '-_',
-            '_',
-        )
-        manifest.screenshots[landscapeFilename] = device.screenshots[
-            landscapeFilename
-        ] = device.landscape
-        manifest.screenshots[portraitFilename] = device.screenshots[
-            portraitFilename
-        ] = device.portrait
-        manifest.devices[deviceLabel] = device
+        if (deviceDefinition.type === 'desktop') {
+            const desktopFilename = `${filenamePrefix}.png`
+            manifest.screenshots[desktopFilename] = deviceScreenshots[
+                desktopFilename
+            ] = deviceDefinition.landscape
+        } else if (deviceDefinition.type === 'mobile') {
+            const landscapeFilename =
+                `${filenamePrefix}_landscape.png`.replaceAll('-_', '_')
+            const portraitFilename =
+                `${filenamePrefix}_portrait.png`.replaceAll('-_', '_')
+            manifest.screenshots[landscapeFilename] = deviceScreenshots[
+                landscapeFilename
+            ] = deviceDefinition.landscape
+            manifest.screenshots[portraitFilename] = deviceScreenshots[
+                portraitFilename
+            ] = deviceDefinition.portrait
+        }
+        manifest.devices[deviceDefinition.label] = {
+            landscape: deviceDefinition.landscape,
+            portrait:
+                deviceDefinition.type === 'desktop'
+                    ? undefined
+                    : deviceDefinition.portrait,
+            screenshots: deviceScreenshots,
+        }
     }
     for (const breakpoint of breakpoints) {
         const viewportWidths: Array<number> = []

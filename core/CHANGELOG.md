@@ -1,6 +1,7 @@
 ## Unreleased
 
 - progress update callback on capture API options
+- API for querying supported devices
 
 ## 0.0.3 - 2025-02-10
 

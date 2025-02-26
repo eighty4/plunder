@@ -1,6 +1,7 @@
 ## Unreleased
 
 - CLI updates progress of CSS parsing and screenshot capture
+- CLI command `devices` lists device labels
 
 ## 0.0.4 - 2025-02-10
 
