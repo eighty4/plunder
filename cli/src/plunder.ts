@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { stat } from 'node:fs/promises'
-import nopt from 'nopt'
-import { z } from 'zod'
 import {
     captureScreenshots,
     type CaptureScreenshotsOptions,
     InvalidCaptureScreenshotsOption,
 } from '@eighty4/plunder-core'
+import { stat } from 'node:fs/promises'
+import nopt from 'nopt'
+import { z } from 'zod'
 
 const ansi = {
     bold: (s: string) => `\u001b[1m${s}\u001b[0m`,
@@ -147,9 +147,13 @@ function errorPrint(s: string, optParseError?: boolean) {
 }
 
 function helpPrint() {
-    console.log(`Plunders CSS of websites and outputs screenshots around media query breakpoints.
+    console.log(`Plunders CSS and HTML for website QA.
 
-${ansi.bold(ansi.underline('Usage:'))} ${ansi.bold('plunder')} [OPTIONS] URL...
+${ansi.bold(ansi.underline('Usage:'))}
+
+  Plunder CSS and output screenshots around media query breakpoints.
+
+    ${ansi.bold('plunder')} [OPTIONS] URL...
 
 ${ansi.bold(ansi.underline('Options:'))}
   ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine [values: chromium (default) | firefox | webkit]
