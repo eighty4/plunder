@@ -1,5 +1,4 @@
 import path from 'node:path/posix'
-import url from 'node:url'
 import type { Page } from 'playwright'
 
 export async function getBaseHref(page: Page): Promise<string | null> {
@@ -67,6 +66,9 @@ export function rewriteHref(
     }
 }
 
-function createUrl(protocol: string, host: string, pathname: string): string {
-    return url.format({ protocol, host, pathname })
+// protocol comes from URL.protocol so it is protocol with the colon like `https:`
+// host is URL.host for the host page and will be hostname or hostname:port
+// href is as close to the source href as possible
+function createUrl(protocol: string, host: string, href: string): string {
+    return `${protocol}//${host}${href.startsWith('/') ? href : `/${href}`}`
 }

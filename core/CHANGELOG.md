@@ -2,6 +2,7 @@
 
 - progress update callback on capture API options
 - API for querying supported devices
+- fix href parsing for URLs with query strings
 
 ## 0.0.3 - 2025-02-10
 

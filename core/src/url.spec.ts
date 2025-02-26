@@ -20,6 +20,22 @@ describe('rewriteHref', () => {
         )
     }
 
+    it('hash component', () =>
+        testRewriteHref({
+            href: '/search#empty',
+            pageUrl: 'https://eighty4.tech',
+            baseHref: null,
+            expectedResult: 'https://eighty4.tech/search#empty',
+        }))
+
+    it('search component', () =>
+        testRewriteHref({
+            href: '/search?q=workflows',
+            pageUrl: 'https://eighty4.tech',
+            baseHref: null,
+            expectedResult: 'https://eighty4.tech/search?q=workflows',
+        }))
+
     it('absolute host href', () =>
         testRewriteHref({
             href: 'https://eighty4.tech/styles.css',
