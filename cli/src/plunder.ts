@@ -3,6 +3,9 @@
 import {
     captureScreenshots,
     type CaptureScreenshotsOptions,
+    getDefaultDeviceLabels,
+    getDeviceLabelSearchMatches,
+    getSupportedDeviceLabels,
     InvalidCaptureScreenshotsOption,
 } from '@eighty4/plunder-core'
 import { stat } from 'node:fs/promises'
@@ -23,6 +26,7 @@ const ansi = {
 }
 
 const knownOpts = {
+    all: Boolean,
     browser: ['chromium', 'firefox', 'webkit'],
     device: [Array, String],
     devices: [Boolean],
@@ -33,6 +37,7 @@ const knownOpts = {
 }
 
 const shortHands = {
+    a: ['--all'],
     b: ['--browser'],
     d: ['--device'],
     h: ['--help'],
@@ -61,6 +66,10 @@ const parsed = nopt(knownOpts, shortHands)
 
 if (parsed.help) {
     helpPrint()
+} else if (parsed.argv.remain.includes('devices')) {
+    devicesPrint(
+        parsed.all ? 'all' : parsed.device?.length ? parsed.device : undefined,
+    )
 } else {
     const opts: CaptureScreenshotsOptions = {
         browser: parsed['browser'] ?? 'chromium',
@@ -95,13 +104,13 @@ if (parsed.help) {
         },
     }
 
-    await validateOpts(opts)
+    await validateCaptureOpts(opts)
 
     console.log('Get ready to plunder!')
-    captureScreenshots(opts).then().catch(onError)
+    captureScreenshots(opts).then().catch(onCaptureError)
 }
 
-async function validateOpts(opts: CaptureScreenshotsOptions) {
+async function validateCaptureOpts(opts: CaptureScreenshotsOptions) {
     if (!opts.urls.length) {
         errorPrint('URL arguments are required', true)
     } else {
@@ -130,7 +139,7 @@ async function validateOpts(opts: CaptureScreenshotsOptions) {
     }
 }
 
-function onError(e: any) {
+function onCaptureError(e: any) {
     if (e instanceof InvalidCaptureScreenshotsOption) {
         errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
     } else {
@@ -146,6 +155,42 @@ function errorPrint(s: string, optParseError?: boolean) {
     process.exit(1)
 }
 
+function devicesPrint(query?: 'all' | Array<string>) {
+    if (query === 'all') {
+        console.log(
+            'Plunders modern device defaults (in bold) and searchable devices:',
+        )
+        for (const device of getSupportedDeviceLabels()) {
+            console.log(
+                '  ',
+                device.default ? ansi.bold(device.label) : device.label,
+            )
+        }
+    } else if (query?.length) {
+        const deviceQueryDisplay = query
+            .map((d: string) => ansi.bold(d))
+            .join(', ')
+        console.log(
+            `Plunders devices used when querying with ${deviceQueryDisplay}:`,
+        )
+        for (const label of getDeviceLabelSearchMatches(query)) {
+            console.log('  ', label)
+        }
+    } else {
+        console.log('Plunders modern devices used by default:')
+        for (const label of getDefaultDeviceLabels()) {
+            console.log('  ', label)
+        }
+    }
+
+    console.log(
+        '\nPlunders device support comes from the npm package `playwright-core`.',
+        '\nThe definitions used by Plunder can be extended, however, only the Playwright provided devices are used currently.',
+        '\n\n  Read for more info\n    https://playwright.dev/docs/emulation#devices',
+        '\n\n  And contribute your improvements\n    https://github.com/eighty4/plunder/blob/main/core/src/devices.ts',
+    )
+}
+
 function helpPrint() {
     console.log(`Plunders CSS and HTML for website QA.
 
@@ -154,6 +199,10 @@ ${ansi.bold(ansi.underline('Usage:'))}
   Plunder CSS and output screenshots around media query breakpoints.
 
     ${ansi.bold('plunder')} [OPTIONS] URL...
+
+  Plunder emulated devices and list modern defaults, all available or use -d to see device query matches.
+
+    ${ansi.bold('plunder')} [-a, --all] [-d <DEVICE>] devices
 
 ${ansi.bold(ansi.underline('Options:'))}
   ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine [values: chromium (default) | firefox | webkit]

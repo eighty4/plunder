@@ -1,6 +1,53 @@
 import { devices } from 'playwright-core'
 import type { BrowserOptions } from './playwright.ts'
 
+const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
+    Object.freeze([
+        'Galaxy S8',
+        'Galaxy S9+',
+        'Galaxy Tab S4',
+        'iPad (gen 7)',
+        'iPad Mini',
+        'iPad Pro 11',
+        'iPhone X',
+        'iPhone 15',
+        'iPhone 15 Plus',
+        'iPhone 15 Pro',
+        'iPhone 15 Pro Max',
+        'Pixel 5',
+        'Pixel 7',
+    ])
+
+export function getDefaultDeviceLabels(): Array<string> {
+    return [...defaultDeviceLabals] as Array<string>
+}
+
+export function getSupportedDeviceLabels(): Array<{
+    label: string
+    default: boolean
+}> {
+    return Object.keys(devices)
+        .map(label => ({
+            label,
+            default: defaultDeviceLabals.includes(label),
+        }))
+        .sort((d1, d2) => {
+            if (d1.label < d2.label) {
+                return -1
+            } else if (d1.label > d2.label) {
+                return 1
+            } else {
+                return 0
+            }
+        })
+}
+
+export function getDeviceLabelSearchMatches(
+    deviceQueries: Array<string>,
+): Array<string> {
+    return Object.keys(searchDeviceDefinitions(deviceQueries)).sort()
+}
+
 export interface DeviceDefinition {
     landscape: BrowserOptions
     portrait: BrowserOptions
@@ -21,21 +68,7 @@ export function resolveDeviceDefinitions(
 }
 
 function getDefaultDeviceDefinitions(): Record<string, DeviceDefinition> {
-    return buildDeviceDefinitions([
-        'Galaxy S8',
-        'Galaxy S9+',
-        'Galaxy Tab S4',
-        'iPad (gen 7)',
-        'iPad Mini',
-        'iPad Pro 11',
-        'iPhone X',
-        'iPhone 15',
-        'iPhone 15 Plus',
-        'iPhone 15 Pro',
-        'iPhone 15 Pro Max',
-        'Pixel 5',
-        'Pixel 7',
-    ])
+    return buildDeviceDefinitions(defaultDeviceLabals)
 }
 
 function searchDeviceDefinitions(
@@ -70,7 +103,7 @@ function getSearchableDeviceRecord(): Record<string, keyof typeof devices> {
 }
 
 function buildDeviceDefinitions(
-    deviceLabels: Array<keyof typeof devices>,
+    deviceLabels: Readonly<Array<keyof typeof devices>>,
 ): Record<string, DeviceDefinition> {
     const result: Record<string, DeviceDefinition> = {}
     for (const deviceLabel of deviceLabels) {
