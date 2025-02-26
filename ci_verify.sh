@@ -5,3 +5,4 @@ set -e
 
 pnpm -r build
 pnpm -r test
+pnpm exec prettier --check .
