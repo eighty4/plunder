@@ -1,39 +1,22 @@
 #!/usr/bin/env node
 
-import {
-    captureScreenshots,
-    type CaptureScreenshotsOptions,
-    getDefaultDeviceLabels,
-    getDeviceLabelSearchMatches,
-    getSupportedDeviceLabels,
-    InvalidCaptureScreenshotsOption,
-} from '@eighty4/plunder-core'
-import { stat } from 'node:fs/promises'
 import nopt from 'nopt'
-import { z } from 'zod'
-
-const ansi = {
-    bold: (s: string) => `\u001b[1m${s}\u001b[0m`,
-    underline: (s: string) => `\u001b[4m${s}\u001b[0m`,
-    red: (s: string) => `\u001b[31m${s}\u001b[0m`,
-    rewriteLines: (n: number, s: string) => {
-        let seq = ''
-        for (let i = 0; i < n; i++) {
-            seq += `\u001b[A`
-        }
-        console.log(seq + s)
-    },
-}
+import ansi from './ansi.ts'
+import { captureScreenshotsCommand } from './capture.ts'
+import { DEVICES_CMD_NAME, devicesPrintCommand } from './devices.ts'
+import { errorPrint } from './error.ts'
+import { linkCheckingCommand, LINKS_CMD_NAME } from './links.ts'
 
 const knownOpts = {
     all: Boolean,
     browser: ['chromium', 'firefox', 'webkit'],
     device: [Array, String],
-    devices: [Boolean],
-    'not-headless': [Boolean],
-    help: [Boolean],
-    'out-dir': [String],
-    recursive: [Boolean],
+    devices: Boolean,
+    'not-headless': Boolean,
+    help: Boolean,
+    'out-dir': String,
+    'out-file': String,
+    recursive: Boolean,
 }
 
 const shortHands = {
@@ -41,7 +24,7 @@ const shortHands = {
     b: ['--browser'],
     d: ['--device'],
     h: ['--help'],
-    o: ['--out-dir'],
+    o: ['--out-dir', '--out-file'],
     r: ['--recursive'],
 }
 
@@ -66,12 +49,17 @@ const parsed = nopt(knownOpts, shortHands)
 
 if (parsed.help) {
     helpPrint()
-} else if (parsed.argv.remain.includes('devices')) {
-    devicesPrint(
+} else if (parsed.argv.remain.includes(DEVICES_CMD_NAME)) {
+    devicesPrintCommand(
         parsed.all ? 'all' : parsed.device?.length ? parsed.device : undefined,
     )
+} else if (parsed.argv.remain.includes(LINKS_CMD_NAME)) {
+    await linkCheckingCommand({
+        outputFile: parsed.outputFile,
+        urls: parsed.argv.remain.filter(remain => remain !== LINKS_CMD_NAME),
+    })
 } else {
-    const opts: CaptureScreenshotsOptions = {
+    await captureScreenshotsCommand({
         browser: parsed['browser'] ?? 'chromium',
         devices:
             parsed['devices'] === false
@@ -83,112 +71,7 @@ if (parsed.help) {
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
         urls: parsed.argv.remain,
-
-        progress: function (update) {
-            switch (update.step) {
-                case 'parsing':
-                    ansi.rewriteLines(
-                        1,
-                        `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages parsed`,
-                    )
-                    break
-                case 'capturing':
-                    ansi.rewriteLines(
-                        1,
-                        `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`,
-                    )
-                    break
-                case 'completed':
-                    ansi.rewriteLines(1, 'Capturing screenshots completed!')
-            }
-        },
-    }
-
-    await validateCaptureOpts(opts)
-
-    console.log('Get ready to plunder!')
-    captureScreenshots(opts).then().catch(onCaptureError)
-}
-
-async function validateCaptureOpts(opts: CaptureScreenshotsOptions) {
-    if (!opts.urls.length) {
-        errorPrint('URL arguments are required', true)
-    } else {
-        opts.urls.forEach((url, i) => {
-            try {
-                z.string().url().parse(url)
-            } catch (e) {
-                const label = opts.urls.length === 1 ? 'URL' : `URL[${i}]`
-                errorPrint(`${label} is not a valid url`)
-            }
-        })
-    }
-
-    if (!opts.outDir) {
-        errorPrint('--out-dir is required', true)
-    } else {
-        try {
-            if ((await stat(opts.outDir)).isFile()) {
-                errorPrint('--out-dir exists as a file')
-            }
-        } catch (e: any) {
-            if (e.code !== 'ENOENT') {
-                throw e
-            }
-        }
-    }
-}
-
-function onCaptureError(e: any) {
-    if (e instanceof InvalidCaptureScreenshotsOption) {
-        errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
-    } else {
-        errorPrint(e.message)
-    }
-}
-
-function errorPrint(s: string, optParseError?: boolean) {
-    console.log(ansi.bold(ansi.red('error:')), s)
-    if (optParseError) {
-        console.log(`\nFor more information, try '${ansi.bold('--help')}'.`)
-    }
-    process.exit(1)
-}
-
-function devicesPrint(query?: 'all' | Array<string>) {
-    if (query === 'all') {
-        console.log(
-            'Plunders modern device defaults (in bold) and searchable devices:',
-        )
-        for (const device of getSupportedDeviceLabels()) {
-            console.log(
-                '  ',
-                device.default ? ansi.bold(device.label) : device.label,
-            )
-        }
-    } else if (query?.length) {
-        const deviceQueryDisplay = query
-            .map((d: string) => ansi.bold(d))
-            .join(', ')
-        console.log(
-            `Plunders devices used when querying with ${deviceQueryDisplay}:`,
-        )
-        for (const label of getDeviceLabelSearchMatches(query)) {
-            console.log('  ', label)
-        }
-    } else {
-        console.log('Plunders modern devices used by default:')
-        for (const label of getDefaultDeviceLabels()) {
-            console.log('  ', label)
-        }
-    }
-
-    console.log(
-        '\nPlunders device support comes from the npm package `playwright-core`.',
-        '\nThe definitions used by Plunder can be extended, however, only the Playwright provided devices are used currently.',
-        '\n\n  Read for more info\n    https://playwright.dev/docs/emulation#devices',
-        '\n\n  And contribute your improvements\n    https://github.com/eighty4/plunder/blob/main/core/src/devices.ts',
-    )
+    })
 }
 
 function helpPrint() {
@@ -202,7 +85,11 @@ ${ansi.bold(ansi.underline('Usage:'))}
 
   Plunder emulated devices and list modern defaults, all available or use -d to see device query matches.
 
-    ${ansi.bold('plunder')} [-a, --all] [-d <DEVICE>] devices
+    ${ansi.bold('plunder')} [-a, --all] [-d, --device <DEVICE>] ${ansi.bold('devices')}
+
+  Plunder HTML and check all anchor tag HREFs for broken links.
+
+    ${ansi.bold('plunder')} [-o, --out-file <OUT_FILE>] ${ansi.bold('links')} URL...
 
 ${ansi.bold(ansi.underline('Options:'))}
   ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine [values: chromium (default) | firefox | webkit]

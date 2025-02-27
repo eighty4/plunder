@@ -2,6 +2,7 @@
 
 - CLI updates progress of CSS parsing and screenshot capture
 - CLI command `devices` lists device labels
+- CLI command `links` checks anchor tags HREFs
 
 ## 0.0.4 - 2025-02-10
 

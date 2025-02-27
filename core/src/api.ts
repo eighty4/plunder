@@ -1,4 +1,5 @@
 export * from './capture.ts'
+export * from './checkHrefs.ts'
 export {
     getDefaultDeviceLabels,
     getDeviceLabelSearchMatches,
