@@ -14,6 +14,7 @@ const knownOpts = {
     devices: Boolean,
     'not-headless': Boolean,
     help: Boolean,
+    out: String,
     'out-dir': String,
     'out-file': String,
     recursive: Boolean,
@@ -24,7 +25,7 @@ const shortHands = {
     b: ['--browser'],
     d: ['--device'],
     h: ['--help'],
-    o: ['--out-dir', '--out-file'],
+    o: ['--out'],
     r: ['--recursive'],
 }
 
@@ -55,7 +56,7 @@ if (parsed.help) {
     )
 } else if (parsed.argv.remain.includes(LINKS_CMD_NAME)) {
     await linkCheckingCommand({
-        outputFile: parsed.outputFile,
+        outputFile: parsed['out'] || parsed['out-file'],
         urls: parsed.argv.remain.filter(remain => remain !== LINKS_CMD_NAME),
     })
 } else {
@@ -67,7 +68,7 @@ if (parsed.help) {
                 : parsed['device']?.length
                   ? parsed['device']
                   : true,
-        outDir: parsed['out-dir'],
+        outDir: parsed['out'] || parsed['out-dir'],
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
         urls: parsed.argv.remain,
