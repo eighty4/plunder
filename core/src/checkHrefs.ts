@@ -4,11 +4,44 @@ import { ZodError, z } from 'zod'
 import { launchBrowser } from './playwright.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
 
+export type CheckHrefsCallback = (progress: CheckHrefsProgressUpdate) => void
+
+export type CheckHrefsProgressUpdate = {
+    error: string
+    progress: CheckHrefsProgress
+}
+
+export type CheckHrefsProgress =
+    | {
+          step: 'installing-browser'
+      }
+    | {
+          step: 'parsing-doms'
+          completed: number
+          total: number
+      }
+    | {
+          step: 'checking-hrefs'
+          completed: number
+          total: number
+      }
+    | {
+          step: 'completed'
+          bad: number
+          good: number
+          total: number
+      }
+
 export interface CheckHrefsOptions {
     /**
      * Optionally write results of link checking to output file path relative to current directory.
      */
     outputFile?: string
+
+    /**
+     * Callback that receives progress updates from link checking.
+     */
+    progress: CheckHrefsCallback
 
     /**
      * URLs of webpages to perform link checking on.

@@ -10,11 +10,11 @@ import { errorPrint } from './error.ts'
 export const LINKS_CMD_NAME = 'links'
 
 export async function linkCheckingCommand(
-    opts: CheckHrefsOptions,
+    opts: Omit<CheckHrefsOptions, 'progress'>,
 ): Promise<never> {
     console.log('Plundering anchor tags for broken links')
     try {
-        const result = await checkAnchorHrefs(opts)
+        const result = await checkAnchorHrefs({ ...opts, progress })
         printResult(result)
         process.exit(result.good ? 0 : 1)
     } catch (e: any) {
@@ -25,6 +25,8 @@ export async function linkCheckingCommand(
         }
     }
 }
+
+function progress() {}
 
 function printResult(result: CheckHrefsResult) {
     result.pages.forEach(page => {
