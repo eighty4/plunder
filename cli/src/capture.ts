@@ -3,8 +3,11 @@ import {
     InvalidCaptureScreenshotsOption,
     type CaptureProgress,
     type CaptureScreenshotsOptions,
+    type CaptureScreenshotsResult,
 } from '@eighty4/plunder-core'
-import { stat } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
+import { join } from 'node:path'
 import { z } from 'zod'
 import ansi from './ansi.ts'
 import { errorPrint } from './error.ts'
@@ -17,7 +20,8 @@ export async function captureScreenshotsCommand(
 
     console.log('Get ready to plunder!')
     try {
-        await captureScreenshots({ ...opts, progress })
+        const result = await captureScreenshots({ ...opts, progress })
+        await writeWebappReport(opts.outDir, result)
         process.exit(0)
     } catch (e: any) {
         if (e instanceof InvalidCaptureScreenshotsOption) {
@@ -76,4 +80,32 @@ function progress(update: CaptureProgress) {
         case 'completed':
             ansi.rewriteLines(1, 'Capturing screenshots completed!')
     }
+}
+
+async function writeWebappReport(
+    outDir: string,
+    result: Array<CaptureScreenshotsResult>,
+) {
+    const webappDir = join(import.meta.dirname, '../webapp')
+    await Promise.all(
+        (await readdir(webappDir)).map(file =>
+            streamCopy(join(webappDir, file), join(outDir, file)),
+        ),
+    )
+    const manifests = await Promise.all(
+        result.map(async ({ dir }) => {
+            const manifest = await readFile(join(outDir, dir, 'plunder.json'))
+            return `globalThis['plunder']['webpages'].push(${manifest.toString()})`
+        }),
+    )
+    const bootstrap = `<script>globalThis['plunder'] = {};globalThis['plunder']['webpages'] = [];${manifests.join(';')}</script>`
+    await appendFile(join(outDir, 'index.html'), bootstrap)
+}
+
+async function streamCopy(from: string, to: string): Promise<void> {
+    const reading = createReadStream(from)
+    const writing = createWriteStream(to)
+    return new Promise((res, rej) =>
+        reading.pipe(writing).on('finish', res).on('error', rej),
+    )
 }

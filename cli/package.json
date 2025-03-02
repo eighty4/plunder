@@ -19,10 +19,12 @@
   "type": "module",
   "bin": "./lib/plunder.js",
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "postbuild": "rm -rf ./webapp && cp -r ../webapp/dist ./webapp"
   },
   "dependencies": {
     "@eighty4/plunder-core": "workspace:^",
+    "@eighty4/plunder-webapp": "workspace:^",
     "nopt": "^8.1.0",
     "zod": "^3.24.1"
   },
@@ -33,6 +35,7 @@
   },
   "files": [
     "lib/**/*.js",
+    "webapp/*",
     "CHANGELOG.md",
     "package.json",
     "README.md"

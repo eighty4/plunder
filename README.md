@@ -78,6 +78,29 @@ pnpm i
 pnpm -r build && node cli/lib/plunder.js -h
 ```
 
+### Web report development
+
+The web report is built with Vite and added to a Plunder capture's output directory by the CLI program.
+The webapp opens images from the file system via relative paths.
+
+For this to work with Vite's development server running on localhost, the Vite server will bootstrap the app and proxy HTTP requests for screenshots to a Plunder capture's out directory.
+
+This command can be used for rebuilding and running Plunder with the default location for Vite to bootstrap the dev server:
+
+```bash
+rm -rf webapp/.plunder && pnpm -r build && node cli/lib/plunder.js -o webapp/.plunder https://alistapart.com --device "iPad Mini"
+cd webapp && pnpm dev
+```
+
+Bootstrapping happens on startup of the app, so run `pnpm dev` anytime you update the Plunder capture's out directory.
+
+To override the default `.plunder` path, use `PLUNDER_OUT_DIR` env var (this is relative to `vite.config.js`):
+
+```bash
+plunder -o zztop https://zztop.com --device "iPad Mini"
+PLUNDER_OUT_DIR=../zztop pnpm dev
+```
+
 ### CICD checks
 
 The `ci_verify.sh` script runs through all the CICD checks done on GitHub Actions:

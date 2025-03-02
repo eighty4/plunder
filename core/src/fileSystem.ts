@@ -1,23 +1,21 @@
 import { mkdir } from 'node:fs/promises'
-import path from 'node:path'
+import { join } from 'node:path'
 
 export async function makeOutDirForPageUrl(
     outDir: string,
     url: string,
-): Promise<string> {
-    const p = makeUrlOutDirPath(outDir, new URL(url))
+): Promise<{ p: string; urlSubdir: string }> {
+    const urlSubdir = makeUrlSubdirPath(new URL(url))
+    const p = join(outDir, urlSubdir)
     await mkdir(p, { recursive: true })
-    return p
+    return { p, urlSubdir }
 }
 
-function makeUrlOutDirPath(outDir: string, url: URL): string {
+// todo search and hash
+function makeUrlSubdirPath(url: URL): string {
     if (url.pathname.length && url.pathname !== '/') {
-        return path.join(
-            outDir,
-            url.host.replace(':', '_'),
-            ...url.pathname.split('/'),
-        )
+        return join(url.host.replace(':', '_'), ...url.pathname.split('/'))
     } else {
-        return path.join(outDir, url.host.replace(':', '_'))
+        return url.host.replace(':', '_')
     }
 }

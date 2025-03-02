@@ -93,14 +93,21 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
     }
 }
 
-export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
+export interface CaptureScreenshotsResult {
+    url: string
+    dir: string
+}
+
+export async function captureScreenshots(
+    opts: CaptureScreenshotsOptions,
+): Promise<Array<CaptureScreenshotsResult>> {
     validateCaptureScreenshotsOptions(opts)
     const updater = new CaptureProgressUpdater(opts.progress)
     const browser = await launchBrowser(opts)
     try {
         const pages = await parsePagesForCapture(browser, opts, updater)
         updater.markPageParsingCompleted()
-        await Promise.all(
+        return await Promise.all(
             pages.map(parsedPage =>
                 captureScreenshotsForPage(
                     browser,
@@ -117,20 +124,22 @@ export async function captureScreenshots(opts: CaptureScreenshotsOptions) {
 }
 
 // written to webpage out dir
-interface CaptureScreenshotManifest {
+// exported for use in webapp
+export interface CaptureScreenshotManifest {
+    dir: string
     url: string
     devices: Record<string, DeviceDetails>
     screenshots: Record<string, BrowserOptions>
     breakpoints: Array<BreakpointDetails>
 }
 
-interface DeviceDetails {
+export interface DeviceDetails {
     landscape: BrowserOptions
     portrait?: BrowserOptions
     screenshots: Record<string, BrowserOptions>
 }
 
-interface BreakpointDetails {
+export interface BreakpointDetails {
     source: string
     lowerBound?: CssDimension
     upperBound?: CssDimension
@@ -143,21 +152,30 @@ export async function captureScreenshotsForPage(
     breakpoints: Array<CssBreakpoint>,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
-): Promise<void> {
-    const manifest = resolveScreenshotManifest(url, breakpoints, opts)
-    updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
+): Promise<CaptureScreenshotsResult> {
     const outDir = await makeOutDirForPageUrl(opts.outDir, url)
+    const manifest = resolveScreenshotManifest(
+        outDir.urlSubdir,
+        url,
+        breakpoints,
+        opts,
+    )
+    updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const takingScreenshots = Object.entries(manifest.screenshots).map(
         async ([file, browserOpts]) => {
-            await screenshot(browser, outDir, url, file, browserOpts)
+            await screenshot(browser, outDir.p, url, file, browserOpts)
             updater.markScreenshotCompleted()
         },
     )
     await Promise.all(takingScreenshots)
     await writeFile(
-        path.join(outDir, 'plunder.json'),
+        path.join(outDir.p, 'plunder.json'),
         JSON.stringify(manifest, null, 4),
     )
+    return {
+        url,
+        dir: outDir.urlSubdir,
+    }
 }
 
 async function screenshot(
@@ -181,17 +199,17 @@ async function screenshot(
 }
 
 function resolveScreenshotManifest(
+    dir: string,
     url: string,
     breakpoints: Array<CssBreakpoint>,
     opts: CaptureScreenshotsOptions,
 ): CaptureScreenshotManifest {
     const manifest: CaptureScreenshotManifest = {
+        dir,
         url,
         screenshots: {},
         devices: {},
         breakpoints: [],
-    }
-    if (opts.devices === true) {
     }
     for (const deviceDefinition of resolveDeviceDefinitions(opts.devices)) {
         const deviceScreenshots: Record<string, BrowserOptions> = {}
