@@ -2,10 +2,13 @@
 
 Playwright automates browsers using really nifty APIs built into web browsers.
 
-This library and CLI builds on that to automate tasks for QA testing webpages.
+This program builds on that to automate tasks for QA testing webpages.
 Thanks to Playwright, it works across all major browsers and operating systems.
 
 ## Getting started
+
+The CLI is published to npm as [@eighty4/plunder](https://www.npmjs.com/package/@eighty4/plunder)
+and its API is published to npm as [@eighty4/plunder-core](https://www.npmjs.com/package/@eighty4/plunder-core).
 
 ```bash
 # run directly from npm

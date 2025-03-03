@@ -20,7 +20,7 @@
   "bin": "./lib/plunder.js",
   "scripts": {
     "build": "tsc --build",
-    "postbuild": "rm -rf ./webapp && cp -r ../webapp/dist ./webapp"
+    "postbuild": "rm -rf ./webapp && cp -r ../webapp/dist ./webapp && cp ../README.md ./"
   },
   "dependencies": {
     "@eighty4/plunder-core": "workspace:^",

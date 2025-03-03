@@ -2,6 +2,7 @@ node_modules
 
 cli/lib
 cli/webapp
+cli/README.md
 cli/tsconfig.tsbuildinfo
 
 core/lib
