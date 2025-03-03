@@ -7,6 +7,8 @@ on:
       - cli/tsconfig.json
       - core/src/**
       - core/tsconfig.json
+      - webapp/**
+      - .prettier*
       - pnpm-lock.yaml
       - tsconfig.json
 jobs:
