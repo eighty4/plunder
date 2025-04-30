@@ -66,7 +66,10 @@ export interface CaptureScreenshotsOptions {
 }
 
 export class InvalidCaptureScreenshotsOption {
-    constructor(readonly invalidFields: Array<string>) {}
+    invalidFields: Array<string>
+    constructor(invalidFields: Array<string>) {
+        this.invalidFields = invalidFields
+    }
 }
 
 function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {

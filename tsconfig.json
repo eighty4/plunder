@@ -8,6 +8,7 @@
     "rewriteRelativeImportExtensions": true,
     "composite": true,
     "incremental": true,
+    "erasableSyntaxOnly": true,
 
     /* Linting */
     "noFallthroughCasesInSwitch": true,

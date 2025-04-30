@@ -17,7 +17,10 @@ export interface CheckHrefsOptions {
 }
 
 export class InvalidCheckHrefsOption {
-    constructor(readonly invalidFields: Array<string>) {}
+    readonly invalidFields: Array<string>
+    constructor(invalidFields: Array<string>) {
+        this.invalidFields = invalidFields
+    }
 }
 
 function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
