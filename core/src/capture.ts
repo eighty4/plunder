@@ -1,10 +1,10 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import z, { ZodError } from 'zod'
-import type { CaptureProgressCallback } from './captureProgress.js'
-import { CaptureProgressUpdater } from './captureUpdater.js'
-import { type CssBreakpoint, type CssDimension } from './cssParse.ts'
-import { resolveDeviceDefinitions } from './devices.ts'
+import { resolveCaptureManifest } from './captureManifest.ts'
+import { type CaptureProgressCallback } from './captureProgress.ts'
+import { CaptureProgressUpdater } from './captureUpdater.ts'
+import { type CssMediaQuery } from './cssParse.ts'
 import { makeOutDirForPageUrl } from './fileSystem.ts'
 import { parsePagesForCapture } from './pageParse.ts'
 import {
@@ -15,10 +15,16 @@ import {
     launchBrowser,
 } from './playwright.ts'
 
-export * from './captureProgress.ts'
-export { BrowserEngineValues, type BrowserEngine } from './playwright.ts'
-
 export interface CaptureScreenshotsOptions {
+    /**
+     * Whether to parse a webpage's CSS media queries for breakpoints. CSS
+     * breakpoints are taken 1px on and 1px out of a media query's bounds.
+     *
+     * A `@media (400 > width > 800)` media query with an upper and lower bound
+     * will create 4 screenshots at 400, 401, 799 and 800 pixels.
+     */
+    breakpoints: boolean
+
     /**
      * The default browser engine to use when a browser engine is not specified by device emulation.
      */
@@ -29,10 +35,15 @@ export interface CaptureScreenshotsOptions {
      * device names from the `devices` export of `playwright-core`. Screenshots will be captured with the browser
      * native to the emulated device (Chrome for Android devices and WebKit for iPhone).
      *
-     * Boolean value of `true` specifies to capture screenshots for a selection of modern phone and tablet devices.
+     * Use boolean value `false` to opt out of device queries.
+     */
+    deviceQueries: false | Array<string>
+
+    /*
+     * Capture screenshots with a selection of modern phone and tablet devices.
      * This selection of devices is defined in `getDefaultDeviceDefinitions()` of `./devices.ts`.
      */
-    devices: boolean | Array<string>
+    modernDevices: boolean
 
     /**
      * Whether to launch browsers headless or graphically in the desktop environment.
@@ -40,9 +51,11 @@ export interface CaptureScreenshotsOptions {
     headless: boolean
 
     /**
-     * Root out directory for screenshot capturing.
+     * Out directory for screenshot capturing.
      *
      * Webpage URIs will be parsed to create a directory structure of `$outDir/$hostname/$path1/$path2/$path3`.
+     * Each webpage's subdirectory in outDir will contain a plunder.json file describing the screenshot
+     * capture for that webpage.
      */
     outDir: string
 
@@ -65,18 +78,27 @@ export interface CaptureScreenshotsOptions {
     urls: Array<string>
 }
 
-export class InvalidCaptureScreenshotsOption {
-    invalidFields: Array<string>
-    constructor(invalidFields: Array<string>) {
-        this.invalidFields = invalidFields
+export class InvalidCaptureScreenshotsOptions {
+    static get CAPTURE_CONFIGS() {
+        return 'CAPTURE_CONFIGS'
+    }
+    // map of paths to validation error messages
+    #fields: Record<string, string>
+    constructor(fields: Record<string, string>) {
+        this.#fields = fields
+    }
+    get fields(): Record<string, string> {
+        return this.#fields
     }
 }
 
 function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
     try {
         z.object({
+            breakpoints: z.boolean(),
             browser: z.enum(BrowserEngineValues),
-            devices: z.union([z.boolean(), z.array(z.string())]),
+            deviceQueries: z.array(z.union([z.literal(false), z.string()])),
+            modernDevices: z.boolean(),
             headless: z.boolean(),
             outDir: z.string(),
             progress: z.function(),
@@ -84,12 +106,33 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
             urls: z.array(z.string().url()),
         })
             .strict()
+            .refine(
+                d =>
+                    d.breakpoints ||
+                    (d.deviceQueries && d.deviceQueries.length) ||
+                    d.modernDevices,
+                {
+                    message:
+                        'Screenshot capture must have a CSS breakpoint or device configured.',
+                    params: { type: 'CAPTURE_CONFIGS' },
+                },
+            )
             .parse(opts)
     } catch (e: any) {
         if (e instanceof ZodError) {
-            throw new InvalidCaptureScreenshotsOption(
-                e.issues.map(i => i.path.join('.')),
-            )
+            const fields: Record<string, string> = {}
+            e.issues.forEach(i => {
+                if (
+                    i.code === 'custom' &&
+                    i.params?.type ===
+                        InvalidCaptureScreenshotsOptions.CAPTURE_CONFIGS
+                ) {
+                    fields[i.params.type] = i.message
+                } else {
+                    fields[i.path.join('.')] = i.message
+                }
+            })
+            throw new InvalidCaptureScreenshotsOptions(fields)
         } else {
             throw e
         }
@@ -108,76 +151,79 @@ export async function captureScreenshots(
     const updater = new CaptureProgressUpdater(opts.progress)
     const browser = await launchBrowser(opts)
     try {
-        const pages = await parsePagesForCapture(browser, opts, updater)
-        updater.markPageParsingCompleted()
-        return await Promise.all(
-            pages.map(parsedPage =>
+        const result = await Promise.all(
+            Object.entries(
+                await resolveUrlsAndMediaQueries(browser, opts, updater),
+            ).map(([url, mediaQueries]) =>
                 captureScreenshotsForPage(
                     browser,
-                    parsedPage.url,
-                    parsedPage.breakpoints,
+                    url,
+                    mediaQueries,
                     opts,
                     updater,
                 ),
             ),
         )
+        updater.markCompleted()
+        return result
     } finally {
         await browser.close()
     }
 }
 
-// written to webpage out dir
-// exported for use in webapp
-export interface CaptureScreenshotManifest {
-    dir: string
-    url: string
-    devices: Record<string, DeviceDetails>
-    screenshots: Record<string, BrowserOptions>
-    breakpoints: Array<BreakpointDetails>
+async function resolveUrlsAndMediaQueries(
+    browser: BrowserProcess,
+    opts: CaptureScreenshotsOptions,
+    updater: CaptureProgressUpdater,
+): Promise<Record<string, null | Array<CssMediaQuery>>> {
+    const result: Record<string, null | Array<CssMediaQuery>> = {}
+    if (opts.breakpoints) {
+        const parsedPages = await parsePagesForCapture(browser, opts, updater)
+        for (const { url, mediaQueries } of parsedPages) {
+            result[url] = mediaQueries
+        }
+        updater.markPageParsingCompleted()
+    } else {
+        opts.urls.forEach(url => (result[url] = null))
+    }
+    return result
 }
 
-export interface DeviceDetails {
-    landscape: BrowserOptions
-    portrait?: BrowserOptions
-    screenshots: Record<string, BrowserOptions>
-}
-
-export interface BreakpointDetails {
-    source: string
-    lowerBound?: CssDimension
-    upperBound?: CssDimension
-    screenshots: Record<string, BrowserOptions>
-}
-
-export async function captureScreenshotsForPage(
+async function captureScreenshotsForPage(
     browser: BrowserProcess,
     url: string,
-    breakpoints: Array<CssBreakpoint>,
+    mediaQueries: Array<CssMediaQuery> | null,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
 ): Promise<CaptureScreenshotsResult> {
     const outDir = await makeOutDirForPageUrl(opts.outDir, url)
-    const manifest = resolveScreenshotManifest(
-        outDir.urlSubdir,
+    const manifest = resolveCaptureManifest(
+        outDir.webpageSubpathWithinOutDir,
         url,
-        breakpoints,
+        mediaQueries,
         opts,
     )
     updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const takingScreenshots = Object.entries(manifest.screenshots).map(
         async ([file, browserOpts]) => {
-            await screenshot(browser, outDir.p, url, file, browserOpts)
+            await screenshot(
+                browser,
+                outDir.webpageOutDir,
+                url,
+                file,
+                browserOpts,
+            )
             updater.markScreenshotCompleted()
         },
     )
     await Promise.all(takingScreenshots)
     await writeFile(
-        path.join(outDir.p, 'plunder.json'),
+        path.join(outDir.webpageOutDir, 'plunder.json'),
         JSON.stringify(manifest, null, 4),
     )
     return {
         url,
-        dir: outDir.urlSubdir,
+        dir: outDir.webpageSubpathWithinOutDir,
     }
 }
 
@@ -199,84 +245,4 @@ async function screenshot(
         }),
     )
     await page.close()
-}
-
-function resolveScreenshotManifest(
-    dir: string,
-    url: string,
-    breakpoints: Array<CssBreakpoint>,
-    opts: CaptureScreenshotsOptions,
-): CaptureScreenshotManifest {
-    const manifest: CaptureScreenshotManifest = {
-        dir,
-        url,
-        screenshots: {},
-        devices: {},
-        breakpoints: [],
-    }
-    for (const deviceDefinition of resolveDeviceDefinitions(opts.devices)) {
-        const deviceScreenshots: Record<string, BrowserOptions> = {}
-        const filenamePrefix = deviceDefinition.label
-            .replaceAll(' ', '-')
-            .replaceAll('(', '-')
-            .replaceAll(')', '-')
-            .replaceAll('--', '-')
-            .toLowerCase()
-        if (deviceDefinition.type === 'desktop') {
-            const desktopFilename = `${filenamePrefix}.png`
-            manifest.screenshots[desktopFilename] = deviceScreenshots[
-                desktopFilename
-            ] = deviceDefinition.landscape
-        } else if (deviceDefinition.type === 'mobile') {
-            const landscapeFilename =
-                `${filenamePrefix}_landscape.png`.replaceAll('-_', '_')
-            const portraitFilename =
-                `${filenamePrefix}_portrait.png`.replaceAll('-_', '_')
-            manifest.screenshots[landscapeFilename] = deviceScreenshots[
-                landscapeFilename
-            ] = deviceDefinition.landscape
-            manifest.screenshots[portraitFilename] = deviceScreenshots[
-                portraitFilename
-            ] = deviceDefinition.portrait
-        }
-        manifest.devices[deviceDefinition.label] = {
-            landscape: deviceDefinition.landscape,
-            portrait:
-                deviceDefinition.type === 'desktop'
-                    ? undefined
-                    : deviceDefinition.portrait,
-            screenshots: deviceScreenshots,
-        }
-    }
-    for (const breakpoint of breakpoints) {
-        const viewportWidths: Array<number> = []
-        if (breakpoint.lowerBound) {
-            viewportWidths.push(
-                breakpoint.lowerBound.value,
-                breakpoint.lowerBound.value - 1,
-            )
-        }
-        if (breakpoint.upperBound) {
-            viewportWidths.push(
-                breakpoint.upperBound.value,
-                breakpoint.upperBound.value + 1,
-            )
-        }
-        const screenshots: Record<string, BrowserOptions> = {}
-        for (const width of viewportWidths) {
-            const file = `w_${width}.png`
-            const browserOpts = { viewport: { height: 600, width } }
-            if (!manifest.screenshots[file]) {
-                manifest.screenshots[file] = browserOpts
-            }
-            screenshots[file] = browserOpts
-        }
-        manifest.breakpoints.push({
-            source: breakpoint.filename,
-            lowerBound: breakpoint.lowerBound,
-            upperBound: breakpoint.upperBound,
-            screenshots,
-        })
-    }
-    return manifest
 }

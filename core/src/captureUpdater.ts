@@ -36,6 +36,11 @@ export class CaptureProgressUpdater {
         this.#sendUpdate()
     }
 
+    markCompleted() {
+        this.#step = 'completed'
+        this.#sendUpdate()
+    }
+
     markPageParsed = () => this.addToParsePageCompleted(1)
 
     markPageParsingCompleted() {

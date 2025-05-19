@@ -1,6 +1,6 @@
 import {
     captureScreenshots,
-    InvalidCaptureScreenshotsOption,
+    InvalidCaptureScreenshotsOptions,
     type CaptureProgress,
     type CaptureScreenshotsOptions,
     type CaptureScreenshotsResult,
@@ -15,7 +15,6 @@ import { errorPrint } from './error.ts'
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
 ): Promise<never> {
-    console.log('Plundering CSS media queries for layout rendering')
     await validateCaptureOpts(opts)
 
     console.log('Get ready to plunder!')
@@ -24,8 +23,22 @@ export async function captureScreenshotsCommand(
         await writeWebappReport(opts.outDir, result)
         process.exit(0)
     } catch (e: any) {
-        if (e instanceof InvalidCaptureScreenshotsOption) {
-            errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
+        if (e instanceof InvalidCaptureScreenshotsOptions) {
+            errorPrint(
+                'fields(s) are invalid:\n\n' +
+                    Object.entries(e.fields)
+                        .map(([p, m]) => {
+                            if (
+                                p ===
+                                InvalidCaptureScreenshotsOptions.CAPTURE_CONFIGS
+                            ) {
+                                return `       ${m} Configure one of --css-breakpoints --device or --modern-devices.`
+                            } else {
+                                return `       ${p}: ${m}`
+                            }
+                        })
+                        .join('\n\n'),
+            )
         } else {
             errorPrint(e.message)
         }
@@ -78,7 +91,7 @@ function progress(update: CaptureProgress) {
             )
             break
         case 'completed':
-            ansi.rewriteLines(1, 'Capturing screenshots completed!')
+            console.log('Capturing screenshots completed!')
     }
 }
 
@@ -98,7 +111,7 @@ async function writeWebappReport(
             return `globalThis['plunder']['webpages'].push(${manifest.toString()})`
         }),
     )
-    const bootstrap = `<script>globalThis['plunder'] = {};globalThis['plunder']['webpages'] = [];${manifests.join(';')}</script>`
+    const bootstrap = `<script>globalThis['plunder']={mode:'report'};globalThis['plunder']['webpages']=[];${manifests.join(';')}</script>`
     await appendFile(join(outDir, 'index.html'), bootstrap)
 }
 

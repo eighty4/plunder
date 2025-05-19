@@ -1,37 +1,54 @@
 import {
+    type Location2,
     type MediaQuery,
-    type ReturnedMediaQuery,
+    type Rule,
     transform,
 } from 'lightningcss'
 import type { FindCssResult } from './cssFind.ts'
 
-// todo convert rem to px
-export type CssUom = 'px' | 'rem'
+export interface ParseCssResult {
+    mediaQueries: Array<CssMediaQuery>
+    url: string
+}
+
+export interface CssMediaQuery {
+    breakpoints: Array<CssBreakpoint>
+    code: CssCodeExcerpt
+    filename: string
+}
+
+export interface CssCodeExcerpt {
+    // logical column number
+    column: number
+    // logical line number
+    line: number
+    // source file index of excerpt end
+    endIndex: number
+    // source file index of excerpt start
+    startIndex: number
+    excerpt: string
+}
+
+export interface CssBreakpoint {
+    bound: 'exact' | 'lower' | 'upper'
+    dimension: CssDimension
+}
 
 export interface CssDimension {
     uom: CssUom
     value: number
 }
 
-export interface CssBreakpoint {
-    filename: string
-    exact?: CssDimension
-    lowerBound?: CssDimension
-    upperBound?: CssDimension
-}
+// todo convert rem to px
+export type CssUom = 'px' | 'rem'
 
-export interface ParseCssResult {
-    breakpoints: Array<CssBreakpoint>
-    url: string
-}
-
-export function parseCssForBreakpoints(
+export function parseCssForMediaQueries(
     foundCss: FindCssResult,
 ): ParseCssResult {
     let inlineI = 0
     return {
         url: foundCss.url,
-        breakpoints: foundCss.css.flatMap(css => {
+        mediaQueries: foundCss.css.flatMap(css => {
             const filename = css.uri || `${foundCss.url} [inline#${inlineI++}]`
             const buffer = Buffer.from(css.content)
             try {
@@ -48,36 +65,55 @@ export function parseCssForBreakpoints(
 function collectApplicableMediaQueries(
     filename: string,
     code: Uint8Array,
-): Array<CssBreakpoint> {
-    const breakpoints: Array<CssBreakpoint> = []
+): Array<CssMediaQuery> {
+    let location: Location2
+    let excerpt: CssCodeExcerpt | null = null
+    const mediaQueries: Array<CssMediaQuery> = []
     transform({
         code,
         filename,
         errorRecovery: true,
         minify: false,
         visitor: {
-            MediaQuery(
-                query: MediaQuery,
-            ): ReturnedMediaQuery | ReturnedMediaQuery[] | void {
+            Rule(rule: Rule): void {
+                if (rule.type === 'media') {
+                    location = rule.value.loc
+                    excerpt = null
+                    //excerpt = extractMediaQueryExcerpt(code, rule.value.loc)
+                }
+            },
+            MediaQuery(query: MediaQuery): void {
                 if (query.condition?.type === 'feature') {
                     if (query.condition?.value?.type === 'interval') {
-                        const breakpoint = createCssBreakpointFromInterval(
+                        const mediaQuery = createCssMediaQueryFromInterval(
+                            excerpt === null
+                                ? (excerpt = extractMediaQueryExcerpt(
+                                      code,
+                                      location,
+                                  ))
+                                : excerpt,
                             filename,
                             query.condition?.value?.startOperator,
                             getCssDimension(query.condition?.value?.start),
                             query.condition?.value?.endOperator,
                             getCssDimension(query.condition?.value?.end),
                         )
-                        if (breakpoint) {
-                            breakpoints.push(breakpoint)
+                        if (mediaQuery) {
+                            mediaQueries.push(mediaQuery)
                         }
                     } else if (query.condition?.value?.type === 'range') {
                         const operator = query.condition?.value?.operator
                         const dimension = getCssDimension(
                             query.condition?.value?.value,
                         )
-                        breakpoints.push(
-                            createCssBreakpointFromRange(
+                        mediaQueries.push(
+                            createCssMediaQueryFromRange(
+                                excerpt === null
+                                    ? (excerpt = extractMediaQueryExcerpt(
+                                          code,
+                                          location,
+                                      ))
+                                    : excerpt,
                                 filename,
                                 operator,
                                 dimension,
@@ -88,7 +124,70 @@ function collectApplicableMediaQueries(
             },
         },
     })
-    return breakpoints.sort(compareBreakpoints)
+    return mediaQueries.sort(compareMediaQueries)
+}
+
+const LINE_BREAK = 10
+const PAREN_LEFT = 40
+const PAREN_RIGHT = 41
+const AMPERSAND = 64
+
+function extractMediaQueryExcerpt(
+    code: Uint8Array,
+    loc: Location2,
+): CssCodeExcerpt {
+    let index = 0
+    let lineBreaks = loc.line
+    while (lineBreaks > 0) {
+        if (code.at(index) === LINE_BREAK) {
+            lineBreaks--
+        }
+        index++
+    }
+    index += loc.column
+    let excerptStart: number = -1
+    let excerptEnd: number = -1
+    let logicalParens: number = 0
+
+    // large minified css loc for media query is offset by a couple chars
+    let limitLocOffset = 3
+    if (code.slice(index, index + 5).toString() !== 'media') {
+        while (limitLocOffset && code.at(index) !== AMPERSAND) {
+            limitLocOffset--
+            index++
+        }
+        index++
+        const wordAtIndex = code.slice(index, index + 5).toString()
+        if (wordAtIndex !== 'media') {
+            throw new Error(
+                `${index} is not the start of @media and instead points to \`${wordAtIndex}\``,
+            )
+        }
+    }
+
+    while (index < code.length && excerptEnd === -1) {
+        if (code.at(index) === PAREN_LEFT) {
+            if (excerptStart === -1) {
+                excerptStart = index + 1
+            }
+            logicalParens++
+        }
+        if (code.at(index) === PAREN_RIGHT) {
+            logicalParens--
+            if (logicalParens === 0) {
+                excerptEnd = index
+            }
+        }
+        index++
+    }
+    const excerpt = code.slice(excerptStart, excerptEnd).toString()
+    return {
+        column: loc.column,
+        line: loc.line,
+        startIndex: excerptStart,
+        endIndex: excerptEnd,
+        excerpt,
+    }
 }
 
 function getCssDimension(obj: any): CssDimension {
@@ -105,13 +204,14 @@ function getCssDimension(obj: any): CssDimension {
     throw new Error()
 }
 
-function createCssBreakpointFromInterval(
+function createCssMediaQueryFromInterval(
+    code: CssCodeExcerpt,
     filename: string,
     startOperator: any,
     startDimension: CssDimension,
     endOperator: any,
     endDimension: CssDimension,
-): CssBreakpoint | undefined {
+): CssMediaQuery | undefined {
     let lowerBound: CssDimension | undefined
     let upperBound: CssDimension | undefined
     switch (startOperator) {
@@ -151,18 +251,22 @@ function createCssBreakpointFromInterval(
     }
     if (lowerBound!.value < upperBound!.value) {
         return {
+            code,
             filename,
-            lowerBound,
-            upperBound,
+            breakpoints: [
+                { bound: 'lower', dimension: lowerBound },
+                { bound: 'upper', dimension: upperBound },
+            ],
         }
     }
 }
 
-function createCssBreakpointFromRange(
+function createCssMediaQueryFromRange(
+    code: CssCodeExcerpt,
     filename: string,
     operator: any,
     dimension: CssDimension,
-): CssBreakpoint {
+): CssMediaQuery {
     let lowerBound: CssDimension | undefined
     let upperBound: CssDimension | undefined
     switch (operator) {
@@ -181,33 +285,65 @@ function createCssBreakpointFromRange(
             upperBound = dimension
             break
     }
+    const breakpoints: Array<CssBreakpoint> = []
+    if (lowerBound) {
+        breakpoints.push({
+            bound: 'lower',
+            dimension: lowerBound,
+        })
+    }
+    if (upperBound) {
+        breakpoints.push({
+            bound: 'upper',
+            dimension: upperBound,
+        })
+    }
     return {
+        code,
+        breakpoints,
         filename,
-        lowerBound,
-        upperBound,
     }
 }
 
-export function compareBreakpoints(a: CssBreakpoint, b: CssBreakpoint): number {
-    if (a.lowerBound && b.lowerBound) {
-        const comparedLowerBounds = compareBounds(a.lowerBound, b.lowerBound)
-        switch (comparedLowerBounds) {
-            case 0:
-                return compareBounds(a.upperBound, b.upperBound)
-            default:
-                return comparedLowerBounds
-        }
+type CompareResult = -1 | 0 | 1
+
+export function compareMediaQueries(
+    a: CssMediaQuery,
+    b: CssMediaQuery,
+): CompareResult {
+    a.breakpoints.sort(compareBreakpoints)
+    b.breakpoints.sort(compareBreakpoints)
+    if (isMediaQueryUnbounded(a, 'lower')) {
+        return -1
+    } else {
     }
-    if (!a.lowerBound && !b.lowerBound) {
-        return compareBounds(a.upperBound, b.upperBound)
-    }
-    if (a.upperBound && b.upperBound) {
-        return compareBounds(a.upperBound, b.upperBound)
-    }
-    return a.lowerBound ? 1 : -1
+    return 0
 }
 
-function compareBounds(a?: CssDimension, b?: CssDimension): number {
+function isMediaQueryUnbounded(
+    mq: CssMediaQuery,
+    bound: 'lower' | 'upper',
+): boolean {
+    return mq.breakpoints.every(b => b.bound !== bound)
+}
+
+export function compareBreakpoints(
+    a: CssBreakpoint,
+    b: CssBreakpoint,
+): CompareResult {
+    if (a.bound === b.bound) {
+        return compareDimensions(a.dimension, b.dimension)
+    } else if (a.bound === 'upper') {
+        return -1
+    } else {
+        return 1
+    }
+}
+
+export function compareDimensions(
+    a?: CssDimension,
+    b?: CssDimension,
+): CompareResult {
     if (a && b) {
         if (a.value === b.value) {
             return 0

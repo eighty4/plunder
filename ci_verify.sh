@@ -30,6 +30,5 @@ fi
 
 pnpm -r build
 pnpm -r test
-pnpm -r lint
 pnpm fmtcheck
 

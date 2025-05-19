@@ -1,14 +1,21 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
+export type CaptureOutDir = {
+    // joined outDir and webpage subpath
+    webpageOutDir: string
+    // webpage subpath from outDir root
+    webpageSubpathWithinOutDir: string
+}
+
 export async function makeOutDirForPageUrl(
     outDir: string,
     url: string,
-): Promise<{ p: string; urlSubdir: string }> {
-    const urlSubdir = makeUrlSubdirPath(new URL(url))
-    const p = join(outDir, urlSubdir)
-    await mkdir(p, { recursive: true })
-    return { p, urlSubdir }
+): Promise<CaptureOutDir> {
+    const webpageSubpathWithinOutDir = makeUrlSubdirPath(new URL(url))
+    const webpageOutDir = join(outDir, webpageSubpathWithinOutDir)
+    await mkdir(webpageOutDir, { recursive: true })
+    return { webpageOutDir, webpageSubpathWithinOutDir }
 }
 
 // todo search and hash

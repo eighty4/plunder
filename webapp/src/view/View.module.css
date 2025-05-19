@@ -1,0 +1,16 @@
+.container {
+    margin-top: var(--header-height);
+
+    &.single {
+        & .img {
+            width: 100vw;
+        }
+    }
+
+    &.diff {
+        display: flex;
+        & .img {
+            width: 50vw;
+        }
+    }
+}

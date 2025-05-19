@@ -46,7 +46,7 @@ export class BrowserProcess {
     #contextLimit: number
     #queued: Array<{ res: (page: Page) => void; opts?: BrowserOptions }> = []
 
-    constructor(browser: Browser, ctxLimit: number = 8) {
+    constructor(browser: Browser, ctxLimit: number = 2) {
         this.#browser = browser
         this.#contextLimit = getContextLimitEnvVar() ?? ctxLimit
     }

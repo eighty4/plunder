@@ -17,7 +17,8 @@ jobs:
           cache: pnpm
       - run: pnpm i
       - run: pnpm -r build
+      - run: ./create-test-reports.sh
+        working-directory: webapp
       - run: pnpm -r test
-      - run: pnpm -r lint
       - run: pnpm exec prettier --check .
       - run: echo 'With galleons and guns'

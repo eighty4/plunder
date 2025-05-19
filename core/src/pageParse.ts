@@ -1,15 +1,37 @@
 import type { CaptureScreenshotsOptions } from './api.ts'
 import type { CaptureProgressUpdater } from './captureUpdater.js'
 import { findAllCss } from './cssFind.ts'
-import { type CssBreakpoint, parseCssForBreakpoints } from './cssParse.ts'
+import { type CssMediaQuery, parseCssForMediaQueries } from './cssParse.ts'
 import { findAllSameOriginAnchorHrefs } from './domParse.ts'
 import { BrowserProcess } from './playwright.ts'
 import { getBaseHref } from './url.ts'
 
 export interface ParsePageResult {
     anchorHrefs?: Array<string>
-    breakpoints: Array<CssBreakpoint>
+    mediaQueries: Array<CssMediaQuery>
     url: string
+}
+
+export async function parsePageForBreakpoints(
+    browser: BrowserProcess,
+    url: string,
+    recursive: boolean = false,
+): Promise<ParsePageResult> {
+    const page = await browser.newPage()
+    await page.goto(url)
+    const baseHref = await getBaseHref(page)
+    const css = await findAllCss(page, baseHref)
+    let anchorHrefs
+    if (recursive) {
+        anchorHrefs = await findAllSameOriginAnchorHrefs(page, baseHref)
+    }
+    await page.close()
+    const { mediaQueries } = parseCssForMediaQueries(css)
+    return {
+        anchorHrefs,
+        mediaQueries,
+        url,
+    }
 }
 
 export async function parsePagesForCapture(
@@ -24,29 +46,12 @@ export async function parsePagesForCapture(
         updater.addToParsePageTotal(urls.length)
         for (const url of urls) {
             if (typeof parsingPages[url] === 'undefined') {
-                parsingPages[url] = parsePage(url, opts.recursive)
+                parsingPages[url] = parsePageForBreakpoints(
+                    browser,
+                    url,
+                    opts.recursive,
+                )
             }
-        }
-    }
-
-    async function parsePage(
-        url: string,
-        recursive: boolean,
-    ): Promise<ParsePageResult> {
-        const page = await browser.newPage()
-        await page.goto(url)
-        const baseHref = await getBaseHref(page)
-        const css = await findAllCss(page, baseHref)
-        let anchorHrefs
-        if (recursive) {
-            anchorHrefs = await findAllSameOriginAnchorHrefs(page, baseHref)
-        }
-        await page.close()
-        const breakpoints = parseCssForBreakpoints(css).breakpoints
-        return {
-            anchorHrefs,
-            breakpoints,
-            url,
         }
     }
 

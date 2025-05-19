@@ -1,4 +1,5 @@
 import { devices } from 'playwright-core'
+import type { CaptureScreenshotsOptions } from './capture.ts'
 import type { BrowserOptions } from './playwright.ts'
 
 const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
@@ -17,6 +18,27 @@ const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
         'Pixel 5',
         'Pixel 7',
     ])
+
+export type DeviceDefinition =
+    | {
+          label: string
+          type: 'desktop'
+          landscape: BrowserDefinition
+      }
+    | {
+          label: string
+          type: 'mobile'
+          landscape: BrowserDefinition
+          portrait: BrowserDefinition
+      }
+
+export type BrowserDefinition = {
+    deviceScaleFactor?: number
+    viewport?: {
+        height: number
+        width: number
+    }
+}
 
 export function getDefaultDeviceLabels(): Array<string> {
     return [...defaultDeviceLabals] as Array<string>
@@ -48,26 +70,26 @@ export function getDeviceLabelSearchMatches(
     return Object.keys(searchDeviceDefinitions(deviceQueries)).sort()
 }
 
-export type DeviceDefinition = {
-    label: string
-    landscape: BrowserOptions
-} & (
-    | {
-          type: 'desktop'
-      }
-    | {
-          type: 'mobile'
-          portrait: BrowserOptions
-      }
-)
+export function resolveDevices(
+    opts: CaptureScreenshotsOptions,
+): Array<DeviceDefinition> {
+    const devices = resolveDeviceQueries(opts.deviceQueries)
+    if (opts.modernDevices) {
+        const queryMatchedLabels = devices.map(d => d.label)
+        for (const device of getModernDevices()) {
+            if (!queryMatchedLabels.includes(device.label)) {
+                devices.push(device)
+            }
+        }
+    }
+    return devices
+}
 
-export function resolveDeviceDefinitions(
-    query: boolean | Array<string>,
+export function resolveDeviceQueries(
+    query: CaptureScreenshotsOptions['deviceQueries'],
 ): Array<DeviceDefinition> {
     if (query === false) {
         return []
-    } else if (query === true) {
-        return getDefaultDeviceDefinitions()
     } else if (Array.isArray(query)) {
         return searchDeviceDefinitions(query)
     } else {
@@ -75,7 +97,7 @@ export function resolveDeviceDefinitions(
     }
 }
 
-function getDefaultDeviceDefinitions(): Array<DeviceDefinition> {
+export function getModernDevices(): Array<DeviceDefinition> {
     return buildDeviceDefinitions(defaultDeviceLabals)
 }
 
@@ -138,6 +160,7 @@ function buildDeviceDefinitions(
 function getBrowserOptions(deviceLabel: keyof typeof devices): BrowserOptions {
     const descriptor = devices[deviceLabel]
     return {
+        deviceScaleFactor: descriptor.deviceScaleFactor,
         viewport: {
             height: descriptor.viewport.height,
             width: descriptor.viewport.width,

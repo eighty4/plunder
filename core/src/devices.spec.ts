@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { devices } from 'playwright-core'
-import { resolveDeviceDefinitions } from './devices.ts'
+import { resolveDeviceQueries } from './devices.ts'
 
-describe('resolveDeviceDefinitions', () => {
+describe('resolveDeviceQueries', () => {
     it('matches some iPhones', () => {
-        const actual = resolveDeviceDefinitions(['iphone']).map(dd => dd.label)
+        const actual = resolveDeviceQueries(['iphone']).map(dd => dd.label)
         const expected: Array<keyof typeof devices> = [
             'iPhone 6',
             'iPhone 6 Plus',

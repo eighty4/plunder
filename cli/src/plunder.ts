@@ -9,9 +9,10 @@ import { linkCheckingCommand, LINKS_CMD_NAME } from './links.ts'
 
 const knownOpts = {
     all: Boolean,
+    ['css-breakpoints']: Boolean,
     browser: ['chromium', 'firefox', 'webkit'],
     device: [Array, String],
-    devices: Boolean,
+    'modern-devices': Boolean,
     'not-headless': Boolean,
     help: Boolean,
     out: String,
@@ -61,13 +62,10 @@ if (parsed.help) {
     })
 } else {
     await captureScreenshotsCommand({
+        breakpoints: parsed['css-breakpoints'] === true,
         browser: parsed['browser'] ?? 'chromium',
-        devices:
-            parsed['devices'] === false
-                ? false
-                : parsed['device']?.length
-                  ? parsed['device']
-                  : true,
+        deviceQueries: parsed['device']?.length ? parsed['device'] : [],
+        modernDevices: parsed['modern-devices'] === true,
         outDir: parsed['out'] || parsed['out-dir'],
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
@@ -78,27 +76,52 @@ if (parsed.help) {
 function helpPrint() {
     console.log(`Plunders CSS and HTML for website QA.
 
-${ansi.bold(ansi.underline('Usage:'))}
+${ansi.bold(ansi.underline('Capturing screenshots:'))}
 
-  Plunder CSS and output screenshots around media query breakpoints.
+  Plunder CSS and capture screenshots around media query breakpoints.
 
-    ${ansi.bold('plunder')} [OPTIONS] URL...
+    ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--css-breakpoints')} URL...
 
-  Plunder emulated devices and list modern defaults, all available or use -d to see device query matches.
+  Capture screenshots emulating a selection of modern phones and tablets.
 
-    ${ansi.bold('plunder')} [-a, --all] [-d, --device <DEVICE>] ${ansi.bold('devices')}
+    ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--modern-devices')} URL...
 
-  Plunder HTML and check all anchor tag HREFs for broken links.
+  Capture screenshots emulating all iPhone devices.
+
+    ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--device iPhone')} URL...
+
+  ${ansi.bold(ansi.underline('Plundering options:'))}
+    ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine used when not specified by device emulation
+                               [values: chromium (default) | firefox | webkit]
+        ${ansi.bold('--css-breakpoints')}      Parse CSS and capture screenshots on media query breakpoints
+    ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
+        ${ansi.bold('--modern-devices')}       Emulate modern devices for screenshot capture
+        ${ansi.bold('--not-headless')}         Launch browser as a GUI application
+    ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
+
+${ansi.bold(ansi.underline('Link checking:'))}
+
+  Plunder HTML and check all anchor tags for broken links.
 
     ${ansi.bold('plunder')} [-o, --out-file <OUT_FILE>] ${ansi.bold('links')} URL...
 
-${ansi.bold(ansi.underline('Options:'))}
-  ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine [values: chromium (default) | firefox | webkit]
-  ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
-      ${ansi.bold('--no-devices')}           Excludes device emulation for screenshot capturing [defaults to false]
-      ${ansi.bold('--not-headless')}         Launch browser as a headless process [defaults to false]
-  ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
-  ${ansi.bold('-r')}, ${ansi.bold('--recursive')}            Recursively plunders links to pages on same domain [defaults to false]
+
+${ansi.bold(ansi.underline('Listing devices:'))}
+
+  Devices emulated with --modern-devices.
+
+    ${ansi.bold('plunder')} ${ansi.bold('devices')}
+
+  All available devices.
+
+    ${ansi.bold('plunder')} --all ${ansi.bold('devices')}
+
+  Devices that match a pattern on device labels.
+
+    ${ansi.bold('plunder')} --device iPhone ${ansi.bold('devices')}
+
+
+${ansi.bold(ansi.underline('Global options:'))}
   ${ansi.bold('-h')}, ${ansi.bold('--help')}                 Print help`)
     process.exit(0)
 }
