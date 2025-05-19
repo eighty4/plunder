@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "@eighty4/plunder-core": "workspace:^",
-    "@eighty4/plunder-webapp": "workspace:^",
     "nopt": "^8.1.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
+    "@eighty4/plunder-webapp": "workspace:^",
     "@types/node": "^22.15.3",
     "@types/nopt": "^3.0.32",
     "typescript": "^5.8.3"
