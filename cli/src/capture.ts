@@ -111,7 +111,7 @@ async function writeWebappReport(
             return `globalThis['plunder']['webpages'].push(${manifest.toString()})`
         }),
     )
-    const bootstrap = `<script>globalThis['plunder']={mode:'report'};globalThis['plunder']['webpages']=[];${manifests.join(';')}</script>`
+    const bootstrap = `<script>globalThis['plunder']={mode:'result'};globalThis['plunder']['webpages']=[];${manifests.join(';')}</script>`
     await appendFile(join(outDir, 'index.html'), bootstrap)
 }
 
