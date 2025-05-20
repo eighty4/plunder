@@ -7,7 +7,7 @@
   "homepage": "https://github.com/eighty4/plunder",
   "description": "Webpage QA tooling powered by Playwright",
   "license": "BSD-2-Clause",
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.11.0",
   "devDependencies": {
     "prettier": "^3.5.3"
   },
