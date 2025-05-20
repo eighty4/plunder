@@ -1,5 +1,6 @@
 ## Unreleased
 
+- CSS media query data structure includes code location and excerpt
 - progress update callback on capture API options
 - API for querying supported devices
 - fix href parsing for URLs with query strings

@@ -1,5 +1,6 @@
 ## Unreleased
 
+- CLI plunder removes default plundering parameters in favor of opting in for CSS parsing and devices
 - CLI updates progress of CSS parsing and screenshot capture
 - CLI command `devices` lists device labels
 - CLI command `links` checks anchor tags HREFs
