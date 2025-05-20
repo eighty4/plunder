@@ -45,14 +45,10 @@ function printResult(result: CheckHrefsResult) {
             return 1
         })
         mal.forEach(href => {
-            // todo combine ansi term colors and string padding on the http status code
-            //  solving a real computer science engineering problem humanity faces
-            //  grey for 429, red for all other statuses
-            let output = `      ${('' + href.status).padEnd(5, ' ')} ${href.href}`
-            if (href.status === 429) {
-                output = ansi.grey(output)
-            }
-            console.log(output)
+            const status = ansi[href.status === 429 ? 'grey' : 'red'](
+                '' + href.status,
+            )
+            console.log(`      ${status} ${href.href}`)
         })
     })
 }

@@ -56,7 +56,7 @@ export interface PageCheckResult {
 export interface HrefCheckResult {
     good: boolean
     href: string
-    status: number | 'error' | 'none'
+    status: number | 'err'
 }
 
 export async function checkAnchorHrefs(
@@ -134,17 +134,14 @@ async function checkHrefs(
                 })
                 status = response.status
             } catch (e: any) {
-                status = 'error'
-                console.error(
-                    'error GET request for',
-                    href,
-                    'referenced from',
-                    collectedHrefs.url,
-                    '\n  ' + e.message,
-                )
+                status = 'err'
+                if (e.message !== 'fetch failed') {
+                    console.error(
+                        `error GET request for ${href} referenced from ${collectedHrefs.url}: ${e.message}`,
+                    )
+                }
             }
-            const good =
-                status === 'error' ? false : status < 300 && status >= 200
+            const good = status !== 'err' && status < 300 && status >= 200
             result.push({ status, href, good })
         }),
     )
