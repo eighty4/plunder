@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import z, { ZodError } from 'zod'
+import { type CaptureHook, resolveCaptureHook } from './captureHook.ts'
 import { resolveCaptureManifest } from './captureManifest.ts'
 import { type CaptureProgressCallback } from './captureProgress.ts'
 import { CaptureProgressUpdater } from './captureUpdater.ts'
@@ -26,14 +27,43 @@ export interface CaptureScreenshotsOptions {
     breakpoints: boolean
 
     /**
-     * The default browser engine to use when a browser engine is not specified by device emulation.
+     * The default browser engine to use when a browser engine is not specified
+     * by device emulation.
      */
     browser: BrowserEngine
 
     /**
-     * Device screens to emulate for capturing landscape and portrait screenshots. Strings will be matched against
-     * device names from the `devices` export of `playwright-core`. Screenshots will be captured with the browser
-     * native to the emulated device (Chrome for Android devices and WebKit for iPhone).
+     * Path to a module exporting a function invoked before every screenshot
+     * capture.
+     *
+     * A path to a relative `.js` or `.ts` script will use the default export
+     * to prepare a page before each capture.
+     *
+     * A path with a `./capture.ts#pageSetup` identifier suffix will use a
+     * specific export from the module. This example would import `pageSetup`
+     * from `./capture.ts` and invoke the function before each screenshot
+     * capture.
+     *
+     * The exported function signature is:
+     *
+     * ```
+     * import type { Page } from 'playwright'
+     *
+     * async function (page: Page): Promise<void> {
+     * }
+     * ```
+     *
+     * The page will already be at the capture URL before the resolved
+     * function is invoked.
+     */
+    captureHook?: string
+
+    /**
+     * Device screens to emulate for capturing landscape and portrait
+     * screenshots. Strings will be matched against device names from the
+     * `devices` export of `playwright-core`. Screenshots will be captured
+     * with the browser native to the emulated device (Chrome for Android
+     * devices and WebKit for iPhone).
      *
      * Use boolean value `false` to opt out of device queries.
      */
@@ -41,34 +71,40 @@ export interface CaptureScreenshotsOptions {
 
     /*
      * Capture screenshots with a selection of modern phone and tablet devices.
-     * This selection of devices is defined in `getDefaultDeviceDefinitions()` of `./devices.ts`.
+     * This selection of devices is defined in `getDefaultDeviceDefinitions()`
+     * of `./devices.ts`.
      */
     modernDevices: boolean
 
     /**
-     * Whether to launch browsers headless or graphically in the desktop environment.
+     * Whether to launch browsers headless or graphically in the desktop
+     * environment.
      */
     headless: boolean
 
     /**
      * Out directory for screenshot capturing.
      *
-     * Webpage URIs will be parsed to create a directory structure of `$outDir/$hostname/$path1/$path2/$path3`.
-     * Each webpage's subdirectory in outDir will contain a plunder.json file describing the screenshot
+     * Webpage URIs will be parsed to create a directory structure of
+     * `$outDir/$hostname/$path1/$path2/$path3`. Each webpage's subdirectory
+     * in outDir will contain a plunder.json file describing the screenshot
      * capture for that webpage.
      */
     outDir: string
 
     /**
-     * Callback that receives progress updates from screenshot capturing process.
+     * Callback that receives progress updates from screenshot capturing
+     * process.
      */
     progress: CaptureProgressCallback
 
     /**
-     * Whether to query the DOM for anchor tags and traverse websites recursively. All anchor hrefs on the same domain
-     * will be included in screenshot capturing.
+     * Whether to query the DOM for anchor tags and traverse websites
+     * recursively. All anchor hrefs on the same domain will be included in
+     * screenshot capturing.
      *
-     * Use the environment variable PLUNDER_BROWSER_LIMIT to throttle concurrent browser contexts.
+     * Use the environment variable PLUNDER_BROWSER_LIMIT to throttle
+     * concurrent browser contexts.
      */
     recursive: boolean
 
@@ -78,25 +114,36 @@ export interface CaptureScreenshotsOptions {
     urls: Array<string>
 }
 
-export class InvalidCaptureScreenshotsOptions {
-    static get CAPTURE_CONFIGS() {
-        return 'CAPTURE_CONFIGS'
-    }
+export class InvalidCaptureOptionsError extends Error {
     // map of paths to validation error messages
     #fields: Record<string, string>
     constructor(fields: Record<string, string>) {
+        super('CaptureScreenshotsOptions was invalid')
+        this.name = this.constructor.name
         this.#fields = fields
     }
     get fields(): Record<string, string> {
-        return this.#fields
+        return structuredClone(this.#fields)
     }
 }
 
-function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
+export class UnspecifiedCaptureSourceError extends Error {
+    constructor() {
+        super(
+            'Must specify a device emulation or CSS breakpoint capture source',
+        )
+        this.name = this.constructor.name
+    }
+}
+
+export function validateCaptureScreenshotsOptions(
+    opts: CaptureScreenshotsOptions,
+) {
     try {
         z.object({
             breakpoints: z.boolean(),
             browser: z.enum(BrowserEngineValues),
+            captureHook: z.string().optional(),
             deviceQueries: z.array(z.union([z.literal(false), z.string()])),
             modernDevices: z.boolean(),
             headless: z.boolean(),
@@ -106,36 +153,22 @@ function validateCaptureScreenshotsOptions(opts: CaptureScreenshotsOptions) {
             urls: z.array(z.string().url()),
         })
             .strict()
-            .refine(
-                d =>
-                    d.breakpoints ||
-                    (d.deviceQueries && d.deviceQueries.length) ||
-                    d.modernDevices,
-                {
-                    message:
-                        'Screenshot capture must have a CSS breakpoint or device configured.',
-                    params: { type: 'CAPTURE_CONFIGS' },
-                },
-            )
             .parse(opts)
     } catch (e: any) {
         if (e instanceof ZodError) {
             const fields: Record<string, string> = {}
-            e.issues.forEach(i => {
-                if (
-                    i.code === 'custom' &&
-                    i.params?.type ===
-                        InvalidCaptureScreenshotsOptions.CAPTURE_CONFIGS
-                ) {
-                    fields[i.params.type] = i.message
-                } else {
-                    fields[i.path.join('.')] = i.message
-                }
-            })
-            throw new InvalidCaptureScreenshotsOptions(fields)
+            e.issues.forEach(i => (fields[i.path.join('.')] = i.message))
+            throw new InvalidCaptureOptionsError(fields)
         } else {
             throw e
         }
+    }
+    if (
+        !opts.breakpoints &&
+        (!opts.deviceQueries || !opts.deviceQueries.length) &&
+        !opts.modernDevices
+    ) {
+        throw new UnspecifiedCaptureSourceError()
     }
 }
 
@@ -148,6 +181,9 @@ export async function captureScreenshots(
     opts: CaptureScreenshotsOptions,
 ): Promise<Array<CaptureScreenshotsResult>> {
     validateCaptureScreenshotsOptions(opts)
+    const captureHook = opts.captureHook
+        ? await resolveCaptureHook(opts.captureHook)
+        : null
     const updater = new CaptureProgressUpdater(opts.progress)
     const browser = await launchBrowser(opts)
     try {
@@ -158,6 +194,7 @@ export async function captureScreenshots(
                 captureScreenshotsForPage(
                     browser,
                     url,
+                    captureHook,
                     mediaQueries,
                     opts,
                     updater,
@@ -192,6 +229,7 @@ async function resolveUrlsAndMediaQueries(
 async function captureScreenshotsForPage(
     browser: BrowserProcess,
     url: string,
+    captureHook: CaptureHook | null,
     mediaQueries: Array<CssMediaQuery> | null,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
@@ -210,6 +248,7 @@ async function captureScreenshotsForPage(
                 browser,
                 outDir.webpageOutDir,
                 url,
+                captureHook,
                 file,
                 browserOpts,
             )
@@ -231,11 +270,15 @@ async function screenshot(
     browser: BrowserProcess,
     outDir: string,
     url: string,
+    captureHook: CaptureHook | null,
     file: string,
     opts: BrowserOptions,
 ) {
     const page = await browser.newPage(opts)
     await page.goto(url)
+    if (captureHook !== null) {
+        await captureHook(page)
+    }
     const p = path.join(outDir, file)
     await writeFile(
         p,

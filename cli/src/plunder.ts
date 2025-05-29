@@ -9,6 +9,7 @@ import { linkCheckingCommand, LINKS_CMD_NAME } from './links.ts'
 
 const knownOpts = {
     all: Boolean,
+    ['capture-hook']: String,
     ['css-breakpoints']: Boolean,
     browser: ['chromium', 'firefox', 'webkit'],
     device: [Array, String],
@@ -64,6 +65,7 @@ if (parsed.help) {
     await captureScreenshotsCommand({
         breakpoints: parsed['css-breakpoints'] === true,
         browser: parsed['browser'] ?? 'chromium',
+        captureHook: parsed['capture-hook'],
         deviceQueries: parsed['device']?.length ? parsed['device'] : [],
         modernDevices: parsed['modern-devices'] === true,
         outDir: parsed['out'] || parsed['out-dir'],
@@ -93,11 +95,15 @@ ${ansi.bold(ansi.underline('Capturing screenshots:'))}
   ${ansi.bold(ansi.underline('Plundering options:'))}
     ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine used when not specified by device emulation
                                [values: chromium (default) | firefox | webkit]
+        ${ansi.bold('--capture-hook')}         Path to a script ran before each screenshot capture
         ${ansi.bold('--css-breakpoints')}      Parse CSS and capture screenshots on media query breakpoints
     ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
         ${ansi.bold('--modern-devices')}       Emulate modern devices for screenshot capture
         ${ansi.bold('--not-headless')}         Launch browser as a GUI application
     ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
+
+  Read CaptureScreenshotsOptions for more details:
+    https://github.com/eighty4/plunder/blob/main/core/src/capture.ts
 
 ${ansi.bold(ansi.underline('Link checking:'))}
 

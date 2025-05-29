@@ -16,7 +16,9 @@
   "description": "Webpage QA tooling powered by Playwright",
   "license": "BSD-2-Clause",
   "type": "module",
-  "main": "lib/api.js",
+  "exports": {
+    ".": "./lib/api.js"
+  },
   "types": "lib/api.d.ts",
   "scripts": {
     "build": "tsc --build",

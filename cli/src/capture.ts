@@ -1,9 +1,12 @@
 import {
+    CaptureHookError,
+    CaptureHookImportError,
     captureScreenshots,
-    InvalidCaptureScreenshotsOptions,
+    InvalidCaptureOptionsError,
     type CaptureProgress,
     type CaptureScreenshotsOptions,
     type CaptureScreenshotsResult,
+    UnspecifiedCaptureSourceError,
 } from '@eighty4/plunder-core'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
@@ -23,21 +26,48 @@ export async function captureScreenshotsCommand(
         await writeWebappReport(opts.outDir, result)
         process.exit(0)
     } catch (e: any) {
-        if (e instanceof InvalidCaptureScreenshotsOptions) {
+        const pad = '        '
+        if (e instanceof UnspecifiedCaptureSourceError) {
+            errorPrint(
+                'Screenshot capture must have a CSS breakpoint or device configured. Configure one of --css-breakpoints --device or --modern-devices.',
+            )
+        } else if (e instanceof InvalidCaptureOptionsError) {
             errorPrint(
                 'fields(s) are invalid:\n\n' +
                     Object.entries(e.fields)
-                        .map(([p, m]) => {
-                            if (
-                                p ===
-                                InvalidCaptureScreenshotsOptions.CAPTURE_CONFIGS
-                            ) {
-                                return `       ${m} Configure one of --css-breakpoints --device or --modern-devices.`
-                            } else {
-                                return `       ${p}: ${m}`
-                            }
-                        })
+                        .map(([p, m]) => `${pad}${p}: ${m}`)
                         .join('\n\n'),
+            )
+        } else if (e instanceof CaptureHookError) {
+            errorPrint(
+                `--capture-hook ${e.specifier} threw ${e.cause.name} during ${e.url} capture:\n\n${pad}${e.cause}`,
+            )
+        } else if (e instanceof CaptureHookImportError) {
+            switch (e.code) {
+                case 'IMPORT_NOT_FOUND':
+                    errorPrint(
+                        `--capture-hook ${e.specifier} could find module but it does not export a ${e.fn} function`,
+                    )
+                    break
+                case 'IMPORT_SYNTAX_ERR':
+                    errorPrint(
+                        `--capture-hook ${e.specifier} threw a syntax error:\n\n${pad}${e.cause}`,
+                    )
+                    break
+                case 'EXPORT_NOT_FOUND':
+                    errorPrint(
+                        `--capture-hook ${e.specifier} could find module but it does not export a ${e.fn} function`,
+                    )
+                    break
+                case 'EXPORT_NOT_FUNCTION':
+                    errorPrint(
+                        `--capture-hook ${e.specifier} exports a ${e.cause} instead of a function`,
+                    )
+                    break
+            }
+        } else if (e instanceof WebappReportError) {
+            errorPrint(
+                `Error writing webapp report to ${opts.outDir}.\n\n${pad}${e.cause.message}`,
             )
         } else {
             errorPrint(e.message)
@@ -95,24 +125,38 @@ function progress(update: CaptureProgress) {
     }
 }
 
+class WebappReportError extends Error {
+    cause: Error
+    constructor(cause: Error) {
+        super(cause.message, { cause })
+        this.cause = cause
+    }
+}
+
 async function writeWebappReport(
     outDir: string,
     result: Array<CaptureScreenshotsResult>,
 ) {
-    const webappDir = join(import.meta.dirname, '../webapp')
-    await Promise.all(
-        (await readdir(webappDir)).map(file =>
-            streamCopy(join(webappDir, file), join(outDir, file)),
-        ),
-    )
-    const manifests = await Promise.all(
-        result.map(async ({ dir }) => {
-            const manifest = await readFile(join(outDir, dir, 'plunder.json'))
-            return `globalThis['plunder']['webpages'].push(${manifest.toString()})`
-        }),
-    )
-    const bootstrap = `<script>globalThis['plunder']={mode:'result'};globalThis['plunder']['webpages']=[];${manifests.join(';')}</script>`
-    await appendFile(join(outDir, 'index.html'), bootstrap)
+    try {
+        const webappDir = join(import.meta.dirname, '../webapp')
+        await Promise.all(
+            (await readdir(webappDir)).map(file =>
+                streamCopy(join(webappDir, file), join(outDir, file)),
+            ),
+        )
+        const manifests = await Promise.all(
+            result.map(async ({ dir }) => {
+                const manifest = await readFile(
+                    join(outDir, dir, 'plunder.json'),
+                )
+                return `globalThis['plunder']['webpages'].push(${manifest.toString()})`
+            }),
+        )
+        const bootstrap = `<script>globalThis['plunder']={mode:'result'};globalThis['plunder']['webpages']=[];${manifests.join(';')}</script>`
+        await appendFile(join(outDir, 'index.html'), bootstrap)
+    } catch (e: any) {
+        throw new WebappReportError(e)
+    }
 }
 
 async function streamCopy(from: string, to: string): Promise<void> {
