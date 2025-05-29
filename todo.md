@@ -2,11 +2,11 @@ midjourney logo
 
 - treasure chest open with a polaroid
 - pirate ship with a cannon
-- red headed pirate woman with pigtails, freckles and pirate hat
+- red headed pirate woman with humonguous boobies, flintlock pistol, pigtails, freckles and pirate hat
 
 cicd
 
-- drop prerelease publish on push
+- update changelog management to use @eighty4/changelog
 
 cli
 
@@ -15,6 +15,7 @@ cli
 
 core
 
+- captureHookDebugVideos opt to record videos to out dir and manifest
 - merge identical media queries in manifest
 - parse css completed with number of media queries found
 - cleanup device ls data
@@ -33,6 +34,9 @@ core
 
 webapp
 
+- embed toolbar play button for captureHookDebugVideo
+    - play in tinted background modal
+- create a web worker that diffs images to highlight/focus diffs in ui
 - ws open-page event sequence
 - PlunderCaptureApi and UserEvents unit tests
 - view

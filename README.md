@@ -7,58 +7,70 @@ Thanks to Playwright, it works across all major browsers and operating systems.
 
 ## Getting started
 
-The CLI is published to npm as [@eighty4/plunder](https://www.npmjs.com/package/@eighty4/plunder)
-and its API is published to npm as [@eighty4/plunder-core](https://www.npmjs.com/package/@eighty4/plunder-core).
+The Plunder CLI is published to npm as
+[@eighty4/plunder](https://www.npmjs.com/package/@eighty4/plunder)
+and its API is published as
+[@eighty4/plunder-core](https://www.npmjs.com/package/@eighty4/plunder-core).
 
 ```bash
 # run directly from npm
 npx @eighty4/plunder -h
 
-# install to path and run
+# install globally and run
 npm i -g @eighty4/plunder@latest
 plunder -h
 ```
 
-## Layout and media query QA
+## CSS media query QA
 
-Plunder will take screenshots of a webpage as they would look on phones, tablets
-or varying pixel density desktops.
-
-Additionally every CSS media query will add a screenshot breakpoint where
-a screenshot will be taken one pixel before and after the breakpoint.
+Pludering webpages with `--css-breakpoints` will use
+[LightningCSS](https://lightningcss.dev/) to capture screenshots on a
+CSS breakpoint and 1px outside of a CSS breakpoint.
 
 ```bash
-plunder --out-dir www_qa https://alistapart.com
+plunder --css-breakpoints --out-dir www_qa https://alistapart.com
 ```
 
-You can reuse the `--out-dir` path for QAing multiple sites and pages
-because webpage data will be isolated by website host and webpage path.
+Let's go back to the [LightningCSS website](https://lightningcss.dev/) again
+and appreciate those neon light effects!
 
-By default, Plunder will emulate a variety of modern phones and tablets.
+## Device emulation QA
 
-### Emphasis on a device
+Plunder takes screenshots of a webpage as they would look on phones,
+tablets or varying pixel density desktops.
+
+### Testing across modern devices
+
+Capture screenshots emulating a curated selection of modern phones and tablets
+with `--modern-devices`:
+
+```bash
+plunder --modern-devices --out-dir www_qa https://alistapart.com
+```
+
+### Selecting devices with `--device` queries
 
 Device presets are available that can be added with `--device` or `-d`.
 This flag is a search param, so `-d ipad` will match all modern iPad devices.
 
 ```bash
 # emulate ipad and iphone devices
-plunder -o www_qa -d ipad -d iphone https://alistapart.com
+plunder --device ipad --device iphone --out-dir www_qa  https://alistapart.com
 
 # emulate high pixel density
-plunder -o www_qa -d hidpi https://alistapart.com
+plunder --device hidpi --out-dir www_qa https://alistapart.com
 ```
 
-### List devices
+### Listing devices
 
 ```bash
-# list modern devices used by default
+# list modern devices used with --modern-devices flag
 plunder devices
 
-# see result of an explicit device queries
+# see result of an explicit device query
 plunder -d hidpi devices
 
-# an exhustive list of queryable devices
+# see exhustive list of queryable devices
 plunder -a devices
 ```
 
@@ -74,35 +86,29 @@ plunder links https://alistapart.com
 
 pnpm and Node 23 are required for development.
 
-### Build and run from a fresh checkout
+Plunder embraces Node's experimental type stripping support and Node will emit
+warnings about TypeScript when running unit tests.
+
+Until Node finalizes type stripping support, CLI users will receive warnings
+from Node if their `--capture-hook` script is a TypeScript file. Hopefully the
+next LTS release of Node will remove the warnings!
+
+### Build and run CLI
 
 ```bash
 pnpm i
-pnpm -r build && node cli/lib/plunder.js -h
+pnpm --filter \!@eighty4/plunder-webapp build
+node cli/lib/plunder.js -h
 ```
 
-### Web report development
+### Webapp development
 
-The web report is built with Vite and added to a Plunder capture's output directory by the CLI program.
-The webapp opens images from the file system via relative paths.
+Plunder out directories will have a web report written to the out directory's
+root. The web report is built with React and Vite and distributed with the CLI
+package `@eighty4/plunder`.
 
-For this to work with Vite's development server running on localhost, the Vite server will bootstrap the app and proxy HTTP requests for screenshots to a Plunder capture's out directory.
-
-This command can be used for rebuilding and running Plunder with the default location for Vite to bootstrap the dev server:
-
-```bash
-rm -rf webapp/.plunder && pnpm -r build && node cli/lib/plunder.js -o webapp/.plunder https://alistapart.com --device "iPad Mini"
-cd webapp && pnpm dev
-```
-
-Bootstrapping happens on startup of the app, so run `pnpm dev` anytime you update the Plunder capture's out directory.
-
-To override the default `.plunder` path, use `PLUNDER_OUT_DIR` env var (this is relative to `vite.config.js`):
-
-```bash
-plunder -o zztop https://zztop.com --device "iPad Mini"
-PLUNDER_OUT_DIR=../zztop pnpm dev
-```
+The [webapp package's README.md](./webapp/README.md) has details on running
+the Vite app.
 
 ### CICD checks
 
@@ -110,4 +116,11 @@ The `ci_verify.sh` script runs through all the CICD checks done on GitHub Action
 
 ```bash
 ./ci_verify.sh
+```
+
+The script has flags to symlink the `ci_verify.sh` as git hooks.
+
+```bash
+./ci_verify.sh --on-git-commit
+./ci_verify.sh --on-git-push
 ```
