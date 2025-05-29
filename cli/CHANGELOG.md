@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.0.5 - 2025-05-29
+
 - CLI plunder removes default plundering parameters in favor of opting in for CSS parsing and devices
 - CLI updates progress of CSS parsing and screenshot capture
 - CLI command `devices` lists device labels
@@ -24,7 +26,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.4...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.5...HEAD
+[0.0.5]: https://github.com/eighty4/plunder/compare/cli-v0.0.4...cli-v0.0.5
 [0.0.4]: https://github.com/eighty4/plunder/compare/cli-v0.0.3...cli-v0.0.4
 [0.0.3]: https://github.com/eighty4/plunder/compare/cli-v0.0.2...cli-v0.0.3
 [0.0.2]: https://github.com/eighty4/plunder/compare/cli-v0.0.1...cli-v0.0.2

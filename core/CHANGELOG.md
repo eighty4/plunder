@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.0.4 - 2025-05-29
+
 - CSS media query data structure includes code location and excerpt
 - progress update callback on capture API options
 - API for querying supported devices
@@ -20,7 +22,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.3...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.4...HEAD
+[0.0.4]: https://github.com/eighty4/plunder/compare/core-v0.0.3...core-v0.0.4
 [0.0.3]: https://github.com/eighty4/plunder/compare/core-v0.0.2...core-v0.0.3
 [0.0.2]: https://github.com/eighty4/plunder/compare/core-v0.0.1...core-v0.0.2
 [0.0.1]: https://github.com/eighty4/plunder/releases/tag/core-v0.0.1
