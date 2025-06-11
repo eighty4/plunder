@@ -1,4 +1,4 @@
-name: Release
+name: GitHub Release
 run-name: Create ${{ inputs.tag }} GH release
 on:
   workflow_call:

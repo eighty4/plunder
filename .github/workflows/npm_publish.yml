@@ -1,4 +1,4 @@
-name: Publish
+name: NPM Publish
 run-name: Publish ${{ inputs.semver-bump }} bump
 on:
   workflow_call:
@@ -17,6 +17,7 @@ on:
           - major
           - minor
           - patch
+          - prerelease
 concurrency: publish
 env:
   SEMVER_BUMP: ${{ inputs.semver-bump }}
@@ -35,7 +36,7 @@ jobs:
           ./.github/workflows/changelog_check.sh cli/CHANGELOG.md
           ./.github/workflows/changelog_check.sh core/CHANGELOG.md
   verify:
-    uses: ./.github/workflows/verify.yml
+    uses: ./.github/workflows/ci_verify.yml
     needs: [check-build-params]
   create-git-tags:
     runs-on: ubuntu-latest
@@ -95,7 +96,7 @@ jobs:
     needs: [create-git-tags]
     permissions:
       contents: write
-    uses: ./.github/workflows/release.yml
+    uses: ./.github/workflows/gh_release.yml
     with:
       package_label: CLI
       package_name: plunder
@@ -109,7 +110,7 @@ jobs:
     needs: [create-git-tags]
     permissions:
       contents: write
-    uses: ./.github/workflows/release.yml
+    uses: ./.github/workflows/gh_release.yml
     with:
       package_label: Core
       package_name: plunder-core
