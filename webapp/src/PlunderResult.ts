@@ -1,7 +1,7 @@
 import {
     type CaptureScreenshotManifest,
     type DeviceScreenshots,
-    type MediaQueryScreenshots,
+    type MediaQueryBreakpoint,
 } from '@eighty4/plunder-core'
 import {
     type CaptureSource,
@@ -21,7 +21,7 @@ type CaptureSourceScreenshots =
       }
     | {
           type: 'css'
-          mediaQuery: MediaQueryScreenshots
+          breakpoint: MediaQueryBreakpoint
       }
 
 type PlunderResultState = {
@@ -49,17 +49,17 @@ export class PlunderResultApi extends PlunderCaptureApi {
                 if (s.openPageUrl) {
                     const w = s.webpages.find(w => w.url === s.openPageUrl)
                     const devices = w?.devices?.map(d => d.definition) || []
-                    const mediaQueries = w?.mediaQueries || []
+                    const breakpoints = w?.mediaQueryBreakpoints || []
                     return {
                         current,
                         devices,
-                        mediaQueries,
+                        breakpoints,
                     }
                 } else {
                     return {
                         current,
                         devices: [],
-                        mediaQueries: [],
+                        breakpoints: [],
                     }
                 }
             }),
@@ -85,8 +85,13 @@ export class PlunderResultApi extends PlunderCaptureApi {
                 ...s,
                 openPageSource: {
                     type: 'css',
-                    mediaQuery: w.mediaQueries!.find(
-                        q => q.code.excerpt === source.mediaQuery.code.excerpt,
+                    breakpoint: w.mediaQueryBreakpoints!.find(
+                        q =>
+                            q.bound === source.breakpoint.bound &&
+                            q.dimension.uom ===
+                                source.breakpoint.dimension.uom &&
+                            q.dimension.value ===
+                                source.breakpoint.dimension.value,
                     )!,
                 },
             })
@@ -117,7 +122,7 @@ export class PlunderResultApi extends PlunderCaptureApi {
                         }
                     } else if (s.openPageSource.type === 'css') {
                         const w = s.webpages.find(w => w.url === s.openPageUrl)!
-                        const b = s.openPageSource.mediaQuery.breakpoints[0]
+                        const b = s.openPageSource.breakpoint
                         const imgA = {
                             src: `${w.dir}/${b.screenshotOn}`,
                             alt: `on ${b.dimension.value}${b.dimension.uom}`,
@@ -172,10 +177,10 @@ export class PlunderResultApi extends PlunderCaptureApi {
                 type: 'device',
                 device: webpage.devices[0],
             }
-        } else if (webpage.mediaQueries?.length) {
+        } else if (webpage.mediaQueryBreakpoints?.length) {
             return {
                 type: 'css' as const,
-                mediaQuery: webpage.mediaQueries[0],
+                breakpoint: webpage.mediaQueryBreakpoints[0],
             }
         } else {
             return null
@@ -212,7 +217,7 @@ export class PlunderResultApi extends PlunderCaptureApi {
             case 'css':
                 return {
                     type: 'css',
-                    mediaQuery: s.mediaQuery,
+                    breakpoint: s.breakpoint,
                 }
             default:
                 return null

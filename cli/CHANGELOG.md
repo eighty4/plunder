@@ -1,5 +1,7 @@
 ## Unreleased
 
+- `plunder.json` capture manifests and webapp interace merge CSS breakpoints from all media qeueries
+
 ## 0.0.5 - 2025-05-29
 
 - CLI plunder removes default plundering parameters in favor of opting in for CSS parsing and devices

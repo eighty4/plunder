@@ -1,7 +1,7 @@
 import { type FC, type MouseEvent, useEffect, useRef, useState } from 'react'
 import {
-    type CssMediaQuery,
     type DeviceDefinition,
+    type MediaQueryBreakpoint,
 } from '@eighty4/plunder-core'
 import {
     type CaptureSource,
@@ -35,8 +35,7 @@ export const SourceCommand: FC<SourceCommandProps> = ({ plunder }) => {
     }
 
     const inactive =
-        (sources?.devices.length || 0) + (sources?.mediaQueries?.length || 0) <
-        2
+        (sources?.devices.length || 0) + (sources?.breakpoints?.length || 0) < 2
 
     return (
         <>
@@ -49,7 +48,7 @@ export const SourceCommand: FC<SourceCommandProps> = ({ plunder }) => {
                 {!inactive && (
                     <SourceMenu
                         devices={sources?.devices || null}
-                        mediaQueries={sources?.mediaQueries || null}
+                        breakpoints={sources?.breakpoints || null}
                         onHover={onHover}
                         onOpenSource={onOpenSource}
                         show={showMenu}
@@ -77,7 +76,7 @@ const SourceMenuToggle: FC<SourceMenuToggleProps> = ({ current }) => {
                 {!!current && current.type === 'device' && current.device.label}
                 {!!current &&
                     current.type === 'css' &&
-                    current.mediaQuery.code.excerpt}
+                    current.breakpoint.locations[0].code.excerpt}
                 <input
                     id="source-menu-toggle"
                     ref={inputRef}
@@ -90,16 +89,16 @@ const SourceMenuToggle: FC<SourceMenuToggleProps> = ({ current }) => {
 }
 
 type SourceMenuProps = {
+    breakpoints: Array<MediaQueryBreakpoint> | null
     devices: Array<DeviceDefinition> | null
-    mediaQueries: Array<CssMediaQuery> | null
     onHover: (hovering: boolean) => void
     onOpenSource: (source: CaptureSource) => void
     show: boolean
 }
 
 const SourceMenu: FC<SourceMenuProps> = ({
+    breakpoints,
     devices,
-    mediaQueries,
     onHover,
     onOpenSource,
     show,
@@ -115,9 +114,7 @@ const SourceMenu: FC<SourceMenuProps> = ({
         } else {
             onOpenSource({
                 type: 'css',
-                mediaQuery: mediaQueries!.find(
-                    q => q.code.excerpt === elem.dataset.id,
-                )!,
+                breakpoint: breakpoints![parseInt(elem.dataset.id!, 10)]!,
             })
         }
     }
@@ -144,18 +141,18 @@ const SourceMenu: FC<SourceMenuProps> = ({
                     ))}
                 </>
             )}
-            {!!mediaQueries?.length && (
+            {!!breakpoints?.length && (
                 <>
                     <h3 className={styles.header}>CSS Breakpoints</h3>
-                    {mediaQueries.map((mediaQuery, i) => (
+                    {breakpoints.map((breakpoint, i) => (
                         <div
                             className={styles.source}
                             key={i}
                             onClick={onClick}
                             data-type="css"
-                            data-id={mediaQuery.code.excerpt}
+                            data-id={i}
                         >
-                            {mediaQuery.code.excerpt}
+                            {breakpoint.locations[0].code.excerpt}
                         </div>
                     ))}
                 </>

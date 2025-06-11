@@ -1,8 +1,9 @@
 import { type CaptureScreenshotsOptions } from './capture.ts'
 import {
-    type CssCodeExcerpt,
+    type CssBreakpoint,
     type CssDimension,
     type CssMediaQuery,
+    type CssUom,
 } from './cssParse.ts'
 import { type DeviceDefinition, resolveDevices } from './devices.ts'
 import { type BrowserOptions } from './playwright.ts'
@@ -12,16 +13,20 @@ import { type BrowserOptions } from './playwright.ts'
 export interface CaptureScreenshotManifest {
     dir: string
     devices: Array<DeviceScreenshots>
-    mediaQueries: Array<MediaQueryScreenshots> | null
+    mediaQueryBreakpoints: Array<MediaQueryBreakpoint> | null
     screenshots: Record<string, BrowserOptions>
     url: string
 }
 
-export interface MediaQueryScreenshots {
-    filename: string
-    code: CssCodeExcerpt
-    breakpoints: Array<BreakpointScreenshots>
+export interface MediaQueryBreakpoint {
+    bound: 'exact' | 'lower' | 'upper'
+    dimension: CssDimension
+    locations: Array<MediaQueryLocation>
+    screenshotOn: string
+    screenshotOut: string
 }
+
+export type MediaQueryLocation = Pick<CssMediaQuery, 'code' | 'filename'>
 
 export interface BreakpointScreenshots {
     bound: 'lower' | 'upper'
@@ -45,7 +50,7 @@ export function resolveCaptureManifest(
     const manifest: CaptureScreenshotManifest = {
         dir,
         devices: [],
-        mediaQueries: null,
+        mediaQueryBreakpoints: null,
         screenshots: {},
         url,
     }
@@ -56,50 +61,91 @@ export function resolveCaptureManifest(
     return manifest
 }
 
+type DuplicateTracking = Record<
+    CssBreakpoint['bound'],
+    Record<CssUom, Record<number, Array<CssMediaQuery>>>
+>
+
+function createMergingStructure(): DuplicateTracking {
+    return {
+        exact: {
+            px: {},
+            rem: {},
+        },
+        lower: {
+            px: {},
+            rem: {},
+        },
+        upper: {
+            px: {},
+            rem: {},
+        },
+    }
+}
+
 function resolveMediaQueryScreenshots(
     manifest: CaptureScreenshotManifest,
     mediaQueries: Array<CssMediaQuery>,
 ) {
-    manifest.mediaQueries = []
-    const viewportWidths: Array<number> = []
+    manifest.mediaQueryBreakpoints = []
+    const merging = createMergingStructure()
     for (const mediaQuery of mediaQueries) {
-        const breakpoints: Array<BreakpointScreenshots> = []
         for (const breakpoint of mediaQuery.breakpoints) {
-            switch (breakpoint.bound) {
-                case 'lower':
-                    const lowerOn = breakpoint.dimension.value
-                    const lowerOut = breakpoint.dimension.value - 1
-                    breakpoints.push({
-                        bound: 'lower',
-                        dimension: breakpoint.dimension,
-                        screenshotOn: `w_${lowerOn}.png`,
-                        screenshotOut: `w_${lowerOut}.png`,
-                    })
-                    viewportWidths.push(lowerOn, lowerOut)
-                    break
-                case 'upper':
-                    const upperOn = breakpoint.dimension.value
-                    const upperOut = breakpoint.dimension.value + 1
-                    breakpoints.push({
-                        bound: 'upper',
-                        dimension: breakpoint.dimension,
-                        screenshotOn: `w_${upperOn}.png`,
-                        screenshotOut: `w_${upperOut}.png`,
-                    })
-                    viewportWidths.push(upperOn, upperOut)
-                    break
-                case 'exact':
-                default:
-                    throw new Error(
-                        'unsupported breakpoint bound ' + breakpoint.bound,
-                    )
+            const mergingBoundAndUnit =
+                merging[breakpoint.bound][breakpoint.dimension.uom]
+            if (!mergingBoundAndUnit[breakpoint.dimension.value]) {
+                mergingBoundAndUnit[breakpoint.dimension.value] = []
+            }
+            mergingBoundAndUnit[breakpoint.dimension.value].push(mediaQuery)
+        }
+    }
+    const viewportWidths: Array<number> = []
+    for (const [bound, dimensionUomMap] of Object.entries(merging)) {
+        for (const [uom, dimensionValueMap] of Object.entries(
+            dimensionUomMap,
+        )) {
+            for (const [value, mediaQueries] of Object.entries(
+                dimensionValueMap,
+            )) {
+                const dimension: CssDimension = {
+                    uom: uom as CssUom,
+                    value: parseInt(value, 10),
+                }
+                const locations = mediaQueries.map(({ code, filename }) => ({
+                    code,
+                    filename,
+                }))
+                switch (bound) {
+                    case 'exact':
+                        throw new Error('unsupported breakpoint bound ' + bound)
+                        break
+                    case 'lower':
+                        const lowerOn = dimension.value
+                        const lowerOut = dimension.value - 1
+                        manifest.mediaQueryBreakpoints.push({
+                            bound,
+                            dimension,
+                            locations,
+                            screenshotOn: `w_${lowerOn}.png`,
+                            screenshotOut: `w_${lowerOut}.png`,
+                        })
+                        viewportWidths.push(lowerOn, lowerOut)
+                        break
+                    case 'upper':
+                        const upperOn = dimension.value
+                        const upperOut = dimension.value + 1
+                        manifest.mediaQueryBreakpoints.push({
+                            bound,
+                            dimension,
+                            locations,
+                            screenshotOn: `w_${upperOn}.png`,
+                            screenshotOut: `w_${upperOut}.png`,
+                        })
+                        viewportWidths.push(upperOn, upperOut)
+                        break
+                }
             }
         }
-        manifest.mediaQueries.push({
-            filename: mediaQuery.filename,
-            code: mediaQuery.code,
-            breakpoints,
-        })
     }
     for (const width of new Set(viewportWidths)) {
         const file = `w_${width}.png`

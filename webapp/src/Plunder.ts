@@ -1,7 +1,7 @@
 import {
     type CssBreakpoint,
-    type CssMediaQuery,
     type DeviceDefinition,
+    type MediaQueryBreakpoint,
 } from '@eighty4/plunder-core'
 import { type Observable } from 'rxjs'
 
@@ -32,9 +32,9 @@ export type WebSocketConnection =
 export type PlunderMode = 'active' | 'result'
 
 export type CaptureSourceState = {
+    breakpoints: Array<MediaQueryBreakpoint>
     current: CaptureSource | null
     devices: Array<DeviceDefinition>
-    mediaQueries: Array<CssMediaQuery>
 }
 
 export type CaptureSource =
@@ -44,7 +44,7 @@ export type CaptureSource =
       }
     | {
           type: 'css'
-          mediaQuery: CssMediaQuery
+          breakpoint: MediaQueryBreakpoint
       }
 
 export type OpenPageState =

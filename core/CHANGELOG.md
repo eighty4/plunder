@@ -1,5 +1,7 @@
 ## Unreleased
 
+- CSS breakpoints are merged from all media queries
+
 ## 0.0.4 - 2025-05-29
 
 - CSS media query data structure includes code location and excerpt

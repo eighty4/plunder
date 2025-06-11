@@ -40,36 +40,42 @@ describe('resolveCaptureManifest', () => {
         assert.deepEqual(result, {
             dir: 'dir/path',
             devices: [],
-            mediaQueries: [
+            mediaQueryBreakpoints: [
                 {
-                    filename: 'index.css',
-                    code: {
-                        line: 0,
-                        column: 1,
-                        startIndex: 0,
-                        endIndex: 1,
-                        excerpt: '',
-                    },
-                    breakpoints: [
+                    bound: 'lower',
+                    dimension: { uom: 'px', value: 600 },
+                    locations: [
                         {
-                            bound: 'upper',
-                            dimension: {
-                                uom: 'px',
-                                value: 800,
+                            filename: 'index.css',
+                            code: {
+                                line: 0,
+                                column: 1,
+                                startIndex: 0,
+                                endIndex: 1,
+                                excerpt: '',
                             },
-                            screenshotOn: 'w_800.png',
-                            screenshotOut: 'w_801.png',
-                        },
-                        {
-                            bound: 'lower',
-                            dimension: {
-                                uom: 'px',
-                                value: 600,
-                            },
-                            screenshotOn: 'w_600.png',
-                            screenshotOut: 'w_599.png',
                         },
                     ],
+                    screenshotOn: 'w_600.png',
+                    screenshotOut: 'w_599.png',
+                },
+                {
+                    bound: 'upper',
+                    dimension: { uom: 'px', value: 800 },
+                    locations: [
+                        {
+                            filename: 'index.css',
+                            code: {
+                                line: 0,
+                                column: 1,
+                                startIndex: 0,
+                                endIndex: 1,
+                                excerpt: '',
+                            },
+                        },
+                    ],
+                    screenshotOn: 'w_800.png',
+                    screenshotOut: 'w_801.png',
                 },
             ],
             screenshots: {
@@ -132,7 +138,7 @@ describe('resolveCaptureManifest', () => {
                     portrait: 'iphone-15-pro-max_portrait.png',
                 },
             ],
-            mediaQueries: [],
+            mediaQueryBreakpoints: [],
             screenshots: {
                 'iphone-15-pro-max_landscape.png': {
                     deviceScaleFactor: 3,
@@ -191,7 +197,7 @@ describe('resolveCaptureManifest', () => {
                     portrait: undefined,
                 },
             ],
-            mediaQueries: [],
+            mediaQueryBreakpoints: [],
             screenshots: {
                 'desktop-chrome.png': {
                     deviceScaleFactor: 1,

@@ -87,9 +87,9 @@ export class PlunderActiveApi extends PlunderCaptureApi {
         return this.#state.pipe(
             map(_ => {
                 return {
+                    breakpoints: [],
                     current: null,
                     devices: [],
-                    mediaQueries: [],
                 }
             }),
         )
