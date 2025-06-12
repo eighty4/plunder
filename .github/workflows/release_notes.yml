@@ -36,7 +36,7 @@ jobs:
       - run: npm i -g @eighty4/changelog
       - id: notes
         env:
-          CHANGELOG_TAG: ${{ inputs.prerelease && 'Unreleased' || inputs.npm_version }}
+          CHANGELOG_TAG: ${{ inputs.prerelease && 'Unreleased' || format('v{0}', inputs.npm_version) }}
           NPM_TAG: ${{ inputs.prerelease && '@next' || '' }}
           NPM_VERSION: ${{ inputs.npm_version }}
         run: |
