@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- ???
+
+## [v0.0.5] - 2025-06-12
+
 - CSS breakpoints are merged from all media queries
 
 ## [v0.0.4] - 2025-05-29
@@ -26,7 +30,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.4...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.5...HEAD
+[v0.0.5]: https://github.com/eighty4/plunder/compare/core-v0.0.4...core-v0.0.5
 [v0.0.4]: https://github.com/eighty4/plunder/compare/core-v0.0.3...core-v0.0.4
 [v0.0.3]: https://github.com/eighty4/plunder/compare/core-v0.0.2...core-v0.0.3
 [v0.0.2]: https://github.com/eighty4/plunder/compare/core-v0.0.1...core-v0.0.2
