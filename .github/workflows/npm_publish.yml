@@ -1,53 +1,66 @@
 name: NPM Publish
-run-name: Publish ${{ inputs.semver-bump }} bump
+run-name: Publish ${{ inputs.semver-bump }} bump ${{ inputs.dry-run && '(dry run)' || '' }}
+
 on:
-  workflow_call:
-    inputs:
-      semver-bump:
-        type: string
-        default: prerelease
   workflow_dispatch:
     inputs:
       semver-bump:
         description: Semver bump release type
         required: true
         type: choice
-        default: patch
+        default: prerelease
         options:
           - major
           - minor
           - patch
           - prerelease
+      dry-run:
+        type: boolean
+
 concurrency: publish
-env:
-  SEMVER_BUMP: ${{ inputs.semver-bump }}
+
 jobs:
-  check-build-params:
+  build-params:
     runs-on: ubuntu-latest
+    outputs:
+      gh-latest: ${{ inputs.semver-bump == 'prerelease' && 'false' || 'true' }}
+      gh-prerelease: ${{ inputs.semver-bump == 'prerelease' && 'true' || 'false' }}
+      npm-tag: ${{ inputs.semver-bump == 'prerelease' && 'next' || 'latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: validate only prerelease semver bump for publishing @next
-        run: |
-          [[ ${{github.event_name}} == "push" ]] && exit 0
-          [[ $SEMVER_BUMP == "prerelease" ]] && exit 1
-          ./.github/workflows/changelog_check.sh cli/CHANGELOG.md
-          ./.github/workflows/changelog_check.sh core/CHANGELOG.md
+          node-version: 23
+      - name: cli changelog entries
+        if: ${{ inputs.semver-bump != 'prerelease' }}
+        run: npx --yes @eighty4/changelog check
+        working-directory: core
+      - name: core changelog entries
+        if: ${{ inputs.semver-bump != 'prerelease' }}
+        run: npx --yes @eighty4/changelog check
+        working-directory: core
+
   verify:
     uses: ./.github/workflows/ci_verify.yml
-    needs: [check-build-params]
-  create-git-tags:
+
+  git-tags:
     runs-on: ubuntu-latest
-    needs: verify
+    needs: [build-params, verify]
     permissions:
       contents: write
+    outputs:
+      cli-tag: ${{ steps.cli.outputs.tag }}
+      cli-version: ${{ steps.cli.outputs.version }}
+      core-tag: ${{ steps.core.outputs.tag }}
+      core-version: ${{ steps.core.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
+      - run: npm i -g @eighty4/changelog
+      - if: inputs.dry-run
+        run: git checkout -b "publish-dry-run-${{ github.run_number }}"
       - id: cli
         run: |
           VERSION=$(npm version ${{ inputs.semver-bump }})
@@ -55,11 +68,9 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION:1}" >> "$GITHUB_OUTPUT"
         working-directory: cli
-      - run: ./.github/workflows/changelog_rollover.sh cli/CHANGELOG.md $TAG $VERSION
-        if: inputs.semver-bump != 'prerelease'
-        env:
-          TAG: ${{ steps.cli.outputs.tag }}
-          VERSION: ${{ steps.cli.outputs.version }}
+      - if: inputs.semver-bump != 'prerelease'
+        run: changelog rollover "v${{ steps.cli.outputs.version }}" --git-tag ${{ steps.cli.outputs.tag }}
+        working-directory: cli
       - id: core
         run: |
           VERSION=$(npm version ${{ inputs.semver-bump }})
@@ -67,77 +78,117 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION:1}" >> "$GITHUB_OUTPUT"
         working-directory: core
-      - run: ./.github/workflows/changelog_rollover.sh core/CHANGELOG.md $TAG $VERSION
-        if: inputs.semver-bump != 'prerelease'
-        env:
-          TAG: ${{ steps.core.outputs.tag }}
-          VERSION: ${{ steps.core.outputs.version }}
-      - id: push
+      - if: inputs.semver-bump != 'prerelease'
+        run: changelog rollover "v${{ steps.core.outputs.version }}" --git-tag ${{ steps.core.outputs.tag }}
+        working-directory: core
+      - name: git commit
         run: |
-          [[ $SEMVER_BUMP = "prerelease" ]] && NPM_TAG="next" || NPM_TAG="latest"
-          [[ $SEMVER_BUMP = "prerelease" ]] && PRERELEASE="true" || PRERELEASE="false"
           git config --global user.name "Adam McKee"
           git config --global user.email "adam.be.g84d@gmail.com"
           git add cli/package.json cli/CHANGELOG.md core/package.json core/CHANGELOG.md
-          git commit -m "bump @$NPM_TAG package versions"
+          git commit -m "bump @${{ needs.build-params.outputs.npm-tag }} package versions"
           git tag ${{ steps.cli.outputs.tag }}
           git tag ${{ steps.core.outputs.tag }}
-          git push --atomic origin main ${{ steps.cli.outputs.tag }} ${{ steps.core.outputs.tag }}
-          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
-          echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
-    outputs:
-      cli-tag: ${{ steps.cli.outputs.tag }}
-      cli-version: ${{ steps.cli.outputs.version }}
-      core-tag: ${{ steps.core.outputs.tag }}
-      core-version: ${{ steps.core.outputs.version }}
-      npm-tag: ${{ steps.push.outputs.npm-tag }}
-      prerelease: ${{ steps.push.outputs.prerelease }}
-  create-cli-gh-release:
-    needs: [create-git-tags]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/gh_release.yml
-    with:
-      package_label: CLI
-      package_name: plunder
-      prerelease: ${{ needs.create-git-tags.outputs.prerelease }}
-      latest: true
-      tag: ${{ needs.create-git-tags.outputs.cli-tag }}
-      version: ${{ needs.create-git-tags.outputs.cli-version }}
-      changelog: cli/CHANGELOG.md
-    secrets: inherit
-  create-core-gh-release:
-    needs: [create-git-tags]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/gh_release.yml
-    with:
-      package_label: Core
-      package_name: plunder-core
-      prerelease: ${{ needs.create-git-tags.outputs.prerelease }}
-      latest: false
-      tag: ${{ needs.create-git-tags.outputs.core-tag }}
-      version: ${{ needs.create-git-tags.outputs.core-version }}
-      changelog: core/CHANGELOG.md
-    secrets: inherit
+      - name: git push
+        if: ${{ !inputs.dry-run }}
+        run: git push --atomic origin main ${{ steps.cli.outputs.tag }} ${{ steps.core.outputs.tag }}
+      - name: git push dry run
+        if: inputs.dry-run
+        run: git push --atomic origin "publish-dry-run-${{ github.run_number }}" ${{ steps.cli.outputs.tag }} ${{ steps.core.outputs.tag }}
+
   npm-publish:
     name: publish to npm
-    needs: [create-cli-gh-release, create-core-gh-release, create-git-tags]
+    needs: [build-params, git-tags]
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ needs.build-params.outputs.npm-tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-tags: true
-          ref: ${{ needs.create-git-tags.outputs.cli-tag }}
+          ref: ${{ needs.git-tags.outputs.cli-tag }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: 23
           registry-url: https://registry.npmjs.org
       - run: pnpm i
       - run: pnpm -r build
       - name: publish
+        if: ${{ !inputs.dry-run }}
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        run: pnpm publish --no-git-checks -r --tag ${{ needs.create-git-tags.outputs.npm-tag }}
+        run: pnpm publish --no-git-checks -r --tag $NPM_TAG
+      - name: publish
+        if: inputs.dry-run
+        run: pnpm publish --no-git-checks -r --tag $NPM_TAG --dry-run
+
+  cli-release-notes:
+    needs: [build-params, git-tags]
+    uses: ./.github/workflows/release_notes.yml
+    with:
+      package_path: cli
+      git_tag: ${{ needs.git-tags.outputs.cli-tag }}
+      npm_version: ${{ needs.git-tags.outputs.cli-version }}
+      prerelease: ${{ needs.build-params.outputs.gh-prerelease == 'true' }}
+
+  core-release-notes:
+    needs: [build-params, git-tags]
+    uses: ./.github/workflows/release_notes.yml
+    with:
+      package_path: core
+      git_tag: ${{ needs.git-tags.outputs.core-tag }}
+      npm_version: ${{ needs.git-tags.outputs.core-version }}
+      prerelease: ${{ needs.build-params.outputs.gh-prerelease == 'true' }}
+
+  cli-gh-release:
+    needs:
+      - build-params
+      - cli-release-notes
+      - git-tags
+      - npm-publish
+    permissions:
+      contents: write
+    uses: ./.github/workflows/gh_release.yml
+    with:
+      title: 'CLI v${{ needs.git-tags.outputs.cli-version }}'
+      tag: ${{ needs.git-tags.outputs.cli-tag }}
+      release_notes: ${{ needs.cli-release-notes.outputs.notes }}
+      prerelease: ${{ needs.build-params.outputs.gh-prerelease }}
+      latest: ${{ needs.build-params.outputs.gh-latest }}
+    secrets: inherit
+
+  core-gh-release:
+    needs:
+      - build-params
+      - core-release-notes
+      - git-tags
+      - npm-publish
+    permissions:
+      contents: write
+    uses: ./.github/workflows/gh_release.yml
+    with:
+      title: 'Core v${{ needs.git-tags.outputs.core-version }}'
+      tag: ${{ needs.git-tags.outputs.core-tag }}
+      release_notes: ${{ needs.core-release-notes.outputs.notes }}
+      prerelease: ${{ needs.build-params.outputs.gh-prerelease }}
+      latest: false
+    secrets: inherit
+
+  cleanup-dry-run:
+    runs-on: ubuntu-latest
+    needs:
+      - git-tags
+      - npm-publish
+      - cli-gh-release
+      - core-gh-release
+    if: always() && inputs.dry-run
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: git push --delete origin ${{ needs.git-tags.outputs.cli-tag }}
+      - run: git push --delete origin ${{ needs.git-tags.outputs.core-tag }}
+      - run: git push --delete origin "publish-dry-run-${{ github.run_number }}"
+      - run: gh release delete -y ${{ needs.git-tags.outputs.cli-tag }}
+      - run: gh release delete -y ${{ needs.git-tags.outputs.core-tag }}

@@ -1,8 +1,10 @@
-## Unreleased
+# Changelog
+
+## [Unreleased]
 
 - CSS breakpoints are merged from all media queries
 
-## 0.0.4 - 2025-05-29
+## [v0.0.4] - 2025-05-29
 
 - CSS media query data structure includes code location and excerpt
 - progress update callback on capture API options
@@ -10,22 +12,22 @@
 - fix href parsing for URLs with query strings
 - API for parsing a page's anchor HREFs and checking HTTP statuses
 
-## 0.0.3 - 2025-02-10
+## [v0.0.3] - 2025-02-10
 
 - device emulation screenshot capturing for phones and tablets
 - collecting recursive links rewrites relative hrefs over document's base href
 
-## 0.0.2 - 2025-02-06
+## [v0.0.2] - 2025-02-06
 
 - write webpage screenshot capture manifest to output directory
 - FIX closing browser context after capturing webpage screenshots
 
-## 0.0.1 - 2025-02-05
+## [v0.0.1] - 2025-02-05
 
 - capture screenshots of webpages at CSS media query page widths
 
 [Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.4...HEAD
-[0.0.4]: https://github.com/eighty4/plunder/compare/core-v0.0.3...core-v0.0.4
-[0.0.3]: https://github.com/eighty4/plunder/compare/core-v0.0.2...core-v0.0.3
-[0.0.2]: https://github.com/eighty4/plunder/compare/core-v0.0.1...core-v0.0.2
-[0.0.1]: https://github.com/eighty4/plunder/releases/tag/core-v0.0.1
+[v0.0.4]: https://github.com/eighty4/plunder/compare/core-v0.0.3...core-v0.0.4
+[v0.0.3]: https://github.com/eighty4/plunder/compare/core-v0.0.2...core-v0.0.3
+[v0.0.2]: https://github.com/eighty4/plunder/compare/core-v0.0.1...core-v0.0.2
+[v0.0.1]: https://github.com/eighty4/plunder/releases/tag/core-v0.0.1
