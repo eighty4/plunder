@@ -2,7 +2,10 @@
 
 import nopt from 'nopt'
 import ansi from './ansi.ts'
-import { captureScreenshotsCommand } from './capture.ts'
+import {
+    activeScreenshotCapture,
+    captureScreenshotsCommand,
+} from './capture.ts'
 import { DEVICES_CMD_NAME, devicesPrintCommand } from './devices.ts'
 import { errorPrint } from './error.ts'
 import { linkCheckingCommand, LINKS_CMD_NAME } from './links.ts'
@@ -20,6 +23,7 @@ const knownOpts = {
     'out-dir': String,
     'out-file': String,
     recursive: Boolean,
+    ui: Boolean,
 }
 
 const shortHands = {
@@ -61,6 +65,8 @@ if (parsed.help) {
         outputFile: parsed['out'] || parsed['out-file'],
         urls: parsed.argv.remain.filter(remain => remain !== LINKS_CMD_NAME),
     })
+} else if (parsed['ui'] === true) {
+    await activeScreenshotCapture()
 } else {
     await captureScreenshotsCommand({
         breakpoints: parsed['css-breakpoints'] === true,
@@ -79,6 +85,10 @@ function helpPrint() {
     console.log(`Plunders CSS and HTML for website QA.
 
 ${ansi.bold(ansi.underline('Capturing screenshots:'))}
+
+  Command plundering from a UI.
+
+    ${ansi.bold('plunder')} --ui
 
   Plunder CSS and capture screenshots around media query breakpoints.
 

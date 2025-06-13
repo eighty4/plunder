@@ -140,7 +140,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
             debugPrintAndValidate(plunderDev)
             switch (plunderDev.mode) {
                 case 'active':
-                    new CaptureWebSocket({ port: wsPort })
+                    new CaptureWebSocket({ port: wsPort, serveUI: false })
                     const seed = `globalThis['plunder']={mode:'active',port:${wsPort}}`
                     return {
                         plugins: [
@@ -150,8 +150,8 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
                         server: {
                             port: webPort,
                             proxy: {
-                                '/api': {
-                                    target: `ws://localhost:${wsPort}`,
+                                '/plundering': {
+                                    target: `ws://localhost:${wsPort}/plundering`,
                                     ws: true,
                                 },
                             },

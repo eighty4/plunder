@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- ???
+- `plunder --ui` starts web socket active mode
 
 ## [v0.0.6] - 2025-06-12
 

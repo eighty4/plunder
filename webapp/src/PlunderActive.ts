@@ -140,7 +140,7 @@ export class PlunderWebSocket {
         }
         this.#messages = new Subject()
         this.#status = new BehaviorSubject<WebSocketConnection>('connecting')
-        this.#ws = new WebSocket('http://localhost:' + port)
+        this.#ws = new WebSocket(`ws://localhost:${port}/plundering`)
         this.#ws.onopen = this.#onOpen
         this.#ws.onmessage = this.#onMessage
         this.#ws.onclose = this.#onClose

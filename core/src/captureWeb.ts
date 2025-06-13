@@ -1,3 +1,11 @@
+import { createReadStream } from 'node:fs'
+import {
+    createServer as createHttpServer,
+    type IncomingMessage,
+    type Server as HttpServer,
+    type ServerResponse,
+} from 'node:http'
+import { type Duplex, Transform } from 'node:stream'
 import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
@@ -51,21 +59,36 @@ export type CaptureWebSocketRes =
     | DeviceCaptureRes
 
 export interface CaptureWebSocketOpts {
-    // WS port defaults to 8123
+    // WS port defaults to 7944
     port?: number
+    // absolute path to webapp index.html or false to disable
+    serveUI: false | string
 }
 
 export class CaptureWebSocket {
     #browser: Promise<BrowserProcess>
+    #port: number
+    #server: HttpServer
     #wss: WebSocketServer
 
-    constructor(opts?: CaptureWebSocketOpts) {
-        const port = opts?.port || 8123
-        this.#wss = new WebSocketServer({
-            port,
-        })
+    constructor(opts: CaptureWebSocketOpts) {
+        const port = (this.#port = opts.port || 7944)
+        this.#server = createHttpServer(
+            createRequestListener(port, opts.serveUI),
+        )
+        this.#wss = new WebSocketServer({ noServer: true })
+        this.#server.on('upgrade', createUpgradeListener(this.#wss))
+        this.#server.listen(this.#port)
         this.#wss.on('connection', this.#onConnection)
         this.#browser = launchBrowser()
+    }
+
+    get port(): number {
+        return this.#port
+    }
+
+    onClose(): Promise<void> {
+        return new Promise(res => this.#server.once('close', res))
     }
 
     #onConnection = (ws: WebSocket) => {
@@ -112,4 +135,51 @@ async function onOpenPage(browser: BrowserProcess, ws: WebSocket, url: string) {
 function send(ws: WebSocket, msg: CaptureWebSocketRes) {
     console.log('ws send', msg.type)
     ws.send(JSON.stringify(msg))
+}
+
+function createRequestListener(
+    port: number,
+    serveUI: CaptureWebSocketOpts['serveUI'],
+): (req: IncomingMessage, res: ServerResponse) => void {
+    return (req, res) => {
+        if (serveUI !== false && req.url === '/') {
+            const reading = createReadStream(serveUI)
+            res.setHeader('Content-Type', 'text/html')
+            const appendBootstrap = new Transform({
+                transform(chunk, _encoding, cb) {
+                    cb(null, chunk)
+                },
+                flush(cb) {
+                    const bootstrap = `<script>globalThis['plunder']={mode:'active',port:${port}}</script>`
+                    this.push(Buffer.from(bootstrap))
+                    cb()
+                },
+            })
+            reading.pipe(appendBootstrap).pipe(res)
+            reading.on('error', err => {
+                console.error(
+                    `GET ${req.url} file read ${serveUI} error ${err.message}`,
+                )
+                res.statusCode = 500
+                res.end()
+            })
+        } else {
+            res.statusCode = 404
+            res.end()
+        }
+    }
+}
+
+function createUpgradeListener(
+    wss: WebSocketServer,
+): (req: IncomingMessage, socket: Duplex, head: Buffer) => void {
+    return (req, socket, head) => {
+        if (req.url === '/plundering') {
+            wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
+                wss.emit('connection', ws, req)
+            })
+        } else {
+            socket.destroy()
+        }
+    }
 }

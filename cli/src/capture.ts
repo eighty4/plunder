@@ -2,6 +2,7 @@ import {
     CaptureHookError,
     CaptureHookImportError,
     captureScreenshots,
+    CaptureWebSocket,
     InvalidCaptureOptionsError,
     type CaptureProgress,
     type CaptureScreenshotsOptions,
@@ -10,10 +11,20 @@ import {
 } from '@eighty4/plunder-core'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { z } from 'zod'
 import ansi from './ansi.ts'
 import { errorPrint } from './error.ts'
+
+export function activeScreenshotCapture(): Promise<void> {
+    const modulePath = fileURLToPath(import.meta.url)
+    const webappPath = resolve(modulePath, '../../webapp/index.html')
+    const webSocket = new CaptureWebSocket({ serveUI: webappPath })
+    console.log('Plundering your webdev at http://localhost:' + webSocket.port)
+    return webSocket.onClose()
+}
 
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
