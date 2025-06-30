@@ -7,8 +7,6 @@ import {
 import ansi from './ansi.ts'
 import { errorPrint } from './error.ts'
 
-export const LINKS_CMD_NAME = 'links'
-
 export async function linkCheckingCommand(
     opts: CheckHrefsOptions,
 ): Promise<never> {

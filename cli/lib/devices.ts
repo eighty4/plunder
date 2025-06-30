@@ -5,8 +5,6 @@ import {
 } from '@eighty4/plunder-core'
 import ansi from './ansi.ts'
 
-export const DEVICES_CMD_NAME = 'devices'
-
 export function devicesPrintCommand(query?: 'all' | Array<string>): never {
     if (query === 'all') {
         console.log(

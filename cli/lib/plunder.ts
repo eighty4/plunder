@@ -6,9 +6,9 @@ import {
     activeScreenshotCapture,
     captureScreenshotsCommand,
 } from './capture.ts'
-import { DEVICES_CMD_NAME, devicesPrintCommand } from './devices.ts'
+import { devicesPrintCommand } from './devices.ts'
 import { errorPrint } from './error.ts'
-import { linkCheckingCommand, LINKS_CMD_NAME } from './links.ts'
+import { linkCheckingCommand } from './links.ts'
 
 const knownOpts = {
     all: Boolean,
@@ -22,7 +22,6 @@ const knownOpts = {
     out: String,
     'out-dir': String,
     'out-file': String,
-    recursive: Boolean,
     ui: Boolean,
 }
 
@@ -32,7 +31,6 @@ const shortHands = {
     d: ['--device'],
     h: ['--help'],
     o: ['--out'],
-    r: ['--recursive'],
 }
 
 nopt.invalidHandler = function (
@@ -54,16 +52,37 @@ nopt.unknownHandler = function (key: string) {
 
 const parsed = nopt(knownOpts, shortHands)
 
+type PlunderMode = 'capture' | 'devices' | 'links'
+
+const mode = (function resolveMode(): PlunderMode | null {
+    if (parsed.argv.remain.length) {
+        switch (parsed.argv.remain[0]) {
+            case 'devices':
+            case 'links':
+                return parsed.argv.remain[0] as PlunderMode
+            case 'capture':
+                if (parsed.help) {
+                    return 'capture'
+                }
+        }
+    }
+    if (parsed.help && parsed.argv.cooked.length === 1) {
+        return null
+    } else {
+        return 'capture'
+    }
+})()
+
 if (parsed.help) {
     helpPrint()
-} else if (parsed.argv.remain.includes(DEVICES_CMD_NAME)) {
+} else if (mode === 'devices') {
     devicesPrintCommand(
         parsed.all ? 'all' : parsed.device?.length ? parsed.device : undefined,
     )
-} else if (parsed.argv.remain.includes(LINKS_CMD_NAME)) {
+} else if (mode === 'links') {
     await linkCheckingCommand({
         outputFile: parsed['out'] || parsed['out-file'],
-        urls: parsed.argv.remain.filter(remain => remain !== LINKS_CMD_NAME),
+        urls: parsed.argv.remain.filter(remain => remain !== 'links'),
     })
 } else if (parsed['ui'] === true) {
     await activeScreenshotCapture()
@@ -77,32 +96,53 @@ if (parsed.help) {
         outDir: parsed['out'] || parsed['out-dir'],
         headless: parsed['not-headless'] !== true,
         recursive: parsed['recursive'] === true,
-        urls: parsed.argv.remain,
+        urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
     })
 }
 
-function helpPrint() {
-    console.log(`Plunders CSS and HTML for website QA.
+function helpPrint(): never {
+    const sectionHeader = (s: string): string =>
+        `\n${ansi.bold(ansi.underline(s))}`
+    console.log(`Plunders CSS and HTML for website QA.`)
 
-${ansi.bold(ansi.underline('Capturing screenshots:'))}
+    if (mode === null) {
+        console.log(`${sectionHeader('Capturing screenshots:')}
+  ${ansi.bold('plunder')} --css-breakpoints --out-dir web_qa URL...
+  ${ansi.bold('plunder')} --device iPhone --out-dir web_qa URL...
+  ${ansi.bold('plunder')} --modern-devices --out-dir web_qa URL...
+${sectionHeader('Listing devices:')}
+  ${ansi.bold('plunder')} devices
+  ${ansi.bold('plunder')} devices --all
+  ${ansi.bold('plunder')} devices --device iPhone
+${sectionHeader('Link checking:')}
+  ${ansi.bold('plunder')} links URL...
+${sectionHeader('Read extensive docs with:')}
+  ${ansi.bold('plunder capture -h')}
+  ${ansi.bold('plunder devices -h')}
+  ${ansi.bold('plunder links -h')}`)
+    }
 
-  Command plundering from a UI.
+    // capture -h content
+    if (mode === 'capture') {
+        console.log(`${sectionHeader('Capturing screenshots:')}
+
+ Use a webapp UI to command screenshot capturing.
 
     ${ansi.bold('plunder')} --ui
 
-  Plunder CSS and capture screenshots around media query breakpoints.
+ Plunder CSS and capture screenshots around media query breakpoints.
 
     ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--css-breakpoints')} URL...
 
-  Capture screenshots emulating a selection of modern phones and tablets.
+ Capture screenshots emulating a selection of modern phones and tablets.
 
     ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--modern-devices')} URL...
 
-  Capture screenshots emulating all iPhone devices.
+ Capture screenshots emulating all iPhone devices.
 
     ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--device iPhone')} URL...
 
-  ${ansi.bold(ansi.underline('Plundering options:'))}
+ ${ansi.bold('Options:')}
     ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine used when not specified by device emulation
                                [values: chromium (default) | firefox | webkit]
         ${ansi.bold('--capture-hook')}         Path to a script ran before each screenshot capture
@@ -112,32 +152,41 @@ ${ansi.bold(ansi.underline('Capturing screenshots:'))}
         ${ansi.bold('--not-headless')}         Launch browser as a GUI application
     ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
 
-  Read CaptureScreenshotsOptions for more details:
-    https://github.com/eighty4/plunder/blob/main/core/src/capture.ts
+    CaptureScreenshotsOptions has very detailed docs:
+        https://github.com/eighty4/plunder/blob/main/core/src/capture.ts
 
-${ansi.bold(ansi.underline('Link checking:'))}
+Read about all commands with '${ansi.bold('plunder --help')}'.`)
+    }
 
-  Plunder HTML and check all anchor tags for broken links.
+    // links -h content
+    if (mode === 'links') {
+        console.log(`${sectionHeader('Link checking:')}
+
+ Plunder HTML and check all anchor tags for broken links.
 
     ${ansi.bold('plunder')} [-o, --out-file <OUT_FILE>] ${ansi.bold('links')} URL...
 
+Read about all commands with '${ansi.bold('plunder --help')}'.`)
+    }
 
-${ansi.bold(ansi.underline('Listing devices:'))}
+    // devices -h content
+    if (mode === 'devices') {
+        console.log(`${sectionHeader('Listing devices:')}
 
-  Devices emulated with --modern-devices.
+ Devices emulated when using --modern-devices.
 
     ${ansi.bold('plunder')} ${ansi.bold('devices')}
 
-  All available devices.
+ All available devices to use with --device.
 
     ${ansi.bold('plunder')} --all ${ansi.bold('devices')}
 
-  Devices that match a pattern on device labels.
+ Test device queries that match a pattern on device labels.
 
     ${ansi.bold('plunder')} --device iPhone ${ansi.bold('devices')}
 
+Read about all commands with '${ansi.bold('plunder --help')}'.`)
+    }
 
-${ansi.bold(ansi.underline('Global options:'))}
-  ${ansi.bold('-h')}, ${ansi.bold('--help')}                 Print help`)
     process.exit(0)
 }
