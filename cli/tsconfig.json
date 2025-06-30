@@ -1,9 +1,10 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["src/**/*.ts", "src/nopt.d.ts"],
+  "include": ["lib/**/*.ts", "lib/nopt.d.ts"],
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
+    "rootDir": "lib",
+    "outDir": "lib_js",
+    "declarationDir": "lib_types"
   },
   "references": [
     {

@@ -17,7 +17,7 @@
   "description": "Webpage QA tooling powered by Playwright",
   "license": "BSD-2-Clause",
   "type": "module",
-  "bin": "./lib/plunder.js",
+  "bin": "./lib_js/plunder.js",
   "scripts": {
     "build": "tsc --build",
     "postbuild": "rm -rf ./webapp && cp -r ../webapp/dist ./webapp && cp ../README.md ./"
@@ -34,7 +34,10 @@
     "typescript": "^5.8.3"
   },
   "files": [
-    "lib/**/*.js",
+    "lib/**/*.ts",
+    "lib_js/**/*.js",
+    "lib_types/**/*.d.ts",
+    "!**/*.spec.*",
     "webapp/*",
     "CHANGELOG.md",
     "package.json",

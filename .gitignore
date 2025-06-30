@@ -1,11 +1,13 @@
 node_modules
 
-cli/lib
+cli/lib_js
+cli/lib_types
 cli/webapp
 cli/README.md
 cli/tsconfig.tsbuildinfo
 
-core/lib
+core/lib_js
+core/lib_types
 core/tsconfig.tsbuildinfo
 
 webapp/.plunder

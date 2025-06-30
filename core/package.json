@@ -17,12 +17,19 @@
   "license": "BSD-2-Clause",
   "type": "module",
   "exports": {
-    ".": "./lib/api.js"
+    ".": {
+      "bun": "./lib/api.ts",
+      "node": "./lib_js/api.js",
+      "default": "./lib_js/api.web.js",
+      "types": {
+        "node": "./lib_types/api.d.ts",
+        "default": "./lib_types/api.web.d.ts"
+      }
+    }
   },
-  "types": "lib/api.d.ts",
   "scripts": {
     "build": "tsc --build",
-    "test": "node --experimental-strip-types --test src/*.spec.ts"
+    "test": "node --experimental-strip-types --test lib/*.spec.ts"
   },
   "dependencies": {
     "lightningcss": "^1.29.3",
@@ -38,7 +45,9 @@
   },
   "files": [
     "lib/**/*",
-    "!lib/**/*.spec.*",
+    "lib_js/**/*",
+    "lib_types/**/*",
+    "!**/*.spec.*",
     "CHANGELOG.md",
     "package.json",
     "README.md"
