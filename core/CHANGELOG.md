@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- `getSupportedDeviceLabels` filters out landscape from Playwright
+  device configurations
 - CaptureWebSocket serves webapp index.html with bootstrap metadata
 
 ## [v0.0.5] - 2025-06-12

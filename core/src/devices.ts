@@ -49,6 +49,7 @@ export function getSupportedDeviceLabels(): Array<{
     default: boolean
 }> {
     return Object.keys(devices)
+        .filter(label => !label.endsWith(' landscape'))
         .map(label => ({
             label,
             default: defaultDeviceLabals.includes(label),

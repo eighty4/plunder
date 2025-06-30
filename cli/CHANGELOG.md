@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- `plunder devices --all` does not show duplicate entries for landscape mode
 - `plunder --ui` starts web socket active mode
 
 ## [v0.0.6] - 2025-06-12
