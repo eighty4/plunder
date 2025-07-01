@@ -1,5 +1,6 @@
 import type { Browser, Page } from 'playwright'
 import type { BrowserType } from 'playwright-core'
+import { installBrowsersForNpmInstall } from 'playwright-core/lib/server'
 
 export const BrowserEngineValues = ['chromium', 'firefox', 'webkit'] as const
 
@@ -24,7 +25,9 @@ export async function launchBrowser(
 ): Promise<BrowserProcess> {
     const browser = opts?.browser || 'chromium'
     const headless = opts?.headless ?? true
-    await installPlaywrightBrowser(browser, headless)
+    await installBrowsersForNpmInstall([
+        resolvePlaywrightBrowserEngine(browser, headless),
+    ])
     const browserType = await resolvePlaywrightBrowserType(browser)
     return new BrowserProcess(
         await browserType.launch({ headless }),
@@ -87,17 +90,6 @@ export class BrowserProcess {
             this.#newPage(opts).then(res)
         }
     }
-}
-
-async function installPlaywrightBrowser(
-    browser: BrowserEngine,
-    headless: boolean,
-) {
-    // @ts-ignore
-    const playwrightServer = await import('playwright-core/lib/server')
-    await playwrightServer.installBrowsersForNpmInstall([
-        resolvePlaywrightBrowserEngine(browser, headless),
-    ])
 }
 
 function resolvePlaywrightBrowserEngine(

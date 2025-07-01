@@ -1,5 +1,6 @@
 {
   "extends": "../tsconfig.json",
+  "include": ["lib/**/*.ts", "lib/playwright-core.d.ts"],
   "compilerOptions": {
     "rootDir": "lib",
     "outDir": "lib_js",
