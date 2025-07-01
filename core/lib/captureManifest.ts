@@ -6,7 +6,7 @@ import {
     type CssUom,
 } from './cssParse.ts'
 import { type DeviceDefinition, resolveDevices } from './devices.ts'
-import { type BrowserOptions } from './playwright.ts'
+import { type BrowserOptions } from './playwrightBrowsers.ts'
 
 // representation of json written to capture out dir for each
 // captured webpage types are exported from lib and used by webapp

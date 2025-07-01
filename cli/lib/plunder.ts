@@ -13,6 +13,7 @@ import { linkCheckingCommand } from './links.ts'
 const knownOpts = {
     all: Boolean,
     ['capture-hook']: String,
+    ['confirm-install']: Boolean,
     ['css-breakpoints']: Boolean,
     browser: ['chromium', 'firefox', 'webkit'],
     device: [Array, String],
@@ -73,6 +74,10 @@ const mode = (function resolveMode(): PlunderMode | null {
     }
 })()
 
+function isSkipConfirmInstall(): boolean {
+    return parsed['confirm-install'] === true
+}
+
 if (parsed.help) {
     helpPrint()
 } else if (mode === 'devices') {
@@ -80,24 +85,30 @@ if (parsed.help) {
         parsed.all ? 'all' : parsed.device?.length ? parsed.device : undefined,
     )
 } else if (mode === 'links') {
-    await linkCheckingCommand({
-        outputFile: parsed['out'] || parsed['out-file'],
-        urls: parsed.argv.remain.filter(remain => remain !== 'links'),
-    })
+    await linkCheckingCommand(
+        {
+            outputFile: parsed['out'] || parsed['out-file'],
+            urls: parsed.argv.remain.filter(remain => remain !== 'links'),
+        },
+        isSkipConfirmInstall(),
+    )
 } else if (parsed['ui'] === true) {
-    await activeScreenshotCapture()
+    await activeScreenshotCapture(isSkipConfirmInstall())
 } else {
-    await captureScreenshotsCommand({
-        breakpoints: parsed['css-breakpoints'] === true,
-        browser: parsed['browser'] ?? 'chromium',
-        captureHook: parsed['capture-hook'],
-        deviceQueries: parsed['device']?.length ? parsed['device'] : [],
-        modernDevices: parsed['modern-devices'] === true,
-        outDir: parsed['out'] || parsed['out-dir'],
-        headless: parsed['not-headless'] !== true,
-        recursive: parsed['recursive'] === true,
-        urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
-    })
+    await captureScreenshotsCommand(
+        {
+            breakpoints: parsed['css-breakpoints'] === true,
+            browser: parsed['browser'] ?? 'chromium',
+            captureHook: parsed['capture-hook'],
+            deviceQueries: parsed['device']?.length ? parsed['device'] : [],
+            modernDevices: parsed['modern-devices'] === true,
+            outDir: parsed['out'] || parsed['out-dir'],
+            headless: parsed['not-headless'] !== true,
+            recursive: parsed['recursive'] === true,
+            urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
+        },
+        isSkipConfirmInstall(),
+    )
 }
 
 function helpPrint(): never {
@@ -146,6 +157,7 @@ ${sectionHeader('Read extensive docs with:')}
     ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine used when not specified by device emulation
                                [values: chromium (default) | firefox | webkit]
         ${ansi.bold('--capture-hook')}         Path to a script ran before each screenshot capture
+        ${ansi.bold('--confirm-install')}      Confirm Playwright browser installs
         ${ansi.bold('--css-breakpoints')}      Parse CSS and capture screenshots on media query breakpoints
     ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
         ${ansi.bold('--modern-devices')}       Emulate modern devices for screenshot capture
@@ -165,6 +177,9 @@ Read about all commands with '${ansi.bold('plunder --help')}'.`)
  Plunder HTML and check all anchor tags for broken links.
 
     ${ansi.bold('plunder')} [-o, --out-file <OUT_FILE>] ${ansi.bold('links')} URL...
+
+ ${ansi.bold('Options:')}
+        ${ansi.bold('--confirm-install')}      Confirm Playwright browser installs
 
 Read about all commands with '${ansi.bold('plunder --help')}'.`)
     }

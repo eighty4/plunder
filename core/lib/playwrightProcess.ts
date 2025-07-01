@@ -1,10 +1,6 @@
-import type { Browser, Page } from 'playwright'
-import type { BrowserType } from 'playwright-core'
-import { installBrowsersForNpmInstall } from 'playwright-core/lib/server'
-
-export const BrowserEngineValues = ['chromium', 'firefox', 'webkit'] as const
-
-export type BrowserEngine = (typeof BrowserEngineValues)[number]
+import type { Browser, BrowserType, Page } from 'playwright'
+import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
+import { installMissingBrowserDistributions } from './playwrightInstall.ts'
 
 export interface PlaywrightOptions {
     browser?: BrowserEngine
@@ -12,36 +8,17 @@ export interface PlaywrightOptions {
     headless?: boolean
 }
 
-export interface BrowserOptions {
-    deviceScaleFactor?: number
-    viewport?: {
-        height: number
-        width: number
-    }
-}
-
 export async function launchBrowser(
     opts?: PlaywrightOptions,
 ): Promise<BrowserProcess> {
     const browser = opts?.browser || 'chromium'
     const headless = opts?.headless ?? true
-    await installBrowsersForNpmInstall([
-        resolvePlaywrightBrowserEngine(browser, headless),
-    ])
+    await installMissingBrowserDistributions(browser, headless)
     const browserType = await resolvePlaywrightBrowserType(browser)
     return new BrowserProcess(
         await browserType.launch({ headless }),
         opts?.contextLimit,
     )
-}
-
-function getContextLimitEnvVar() {
-    const envVar = process.env['PLUNDER_BROWSER_LIMIT']
-    if (envVar && envVar.length) {
-        try {
-            return parseInt(envVar, 10)
-        } catch (ignore) {}
-    }
 }
 
 export class BrowserProcess {
@@ -92,21 +69,12 @@ export class BrowserProcess {
     }
 }
 
-function resolvePlaywrightBrowserEngine(
-    browser: BrowserEngine,
-    headless: boolean,
-): string {
-    switch (browser) {
-        case 'chromium':
-            if (headless) {
-                return 'chromium-headless-shell'
-            } else {
-                return 'chromium'
-            }
-        case 'firefox':
-            return 'firefox'
-        case 'webkit':
-            return 'webkit'
+function getContextLimitEnvVar() {
+    const envVar = process.env['PLUNDER_BROWSER_LIMIT']
+    if (envVar && envVar.length) {
+        try {
+            return parseInt(envVar, 10)
+        } catch (ignore) {}
     }
 }
 

@@ -10,7 +10,7 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
 import { parsePageForBreakpoints } from './pageParse.ts'
-import { type BrowserProcess, launchBrowser } from './playwright.ts'
+import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
 
 export type OpenPageReq = {
     type: 'open-page'
@@ -81,6 +81,10 @@ export class CaptureWebSocket {
         this.#server.listen(this.#port)
         this.#wss.on('connection', this.#onConnection)
         this.#browser = launchBrowser()
+    }
+
+    async initializing() {
+        await this.#browser
     }
 
     get port(): number {

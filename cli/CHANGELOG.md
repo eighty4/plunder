@@ -2,8 +2,15 @@
 
 ## [Unreleased]
 
-- `plunder devices --all` does not show duplicate entries for landscape mode
+### Added
+
+- CLI screenshot capture and link checking will prompt user before starting
+  Playwright browser downloads
 - `plunder --ui` starts web socket active mode
+
+### Fixed
+
+- `plunder devices --all` does not show duplicate entries for landscape mode
 
 ## [v0.0.6] - 2025-06-12
 

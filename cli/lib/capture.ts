@@ -16,23 +16,34 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { z } from 'zod'
 import ansi from './ansi.ts'
+import { confirmBrowserInstall } from './browser.ts'
 import { errorPrint } from './error.ts'
 
-export function activeScreenshotCapture(): Promise<void> {
+export async function activeScreenshotCapture(
+    installConfirmed: boolean,
+): Promise<void> {
+    if (!installConfirmed) {
+        await confirmBrowserInstall('chromium', true)
+    }
     const modulePath = fileURLToPath(import.meta.url)
     const webappPath = resolve(modulePath, '../../webapp/index.html')
     const webSocket = new CaptureWebSocket({ serveUI: webappPath })
+    await webSocket.initializing()
     console.log('Plundering your webdev at http://localhost:' + webSocket.port)
     return webSocket.onClose()
 }
 
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
+    installConfirmed: boolean,
 ): Promise<never> {
     await validateCaptureOpts(opts)
 
-    console.log('Get ready to plunder!')
     try {
+        if (!installConfirmed) {
+            await confirmBrowserInstall(opts.browser, opts.headless)
+        }
+        console.log('Get ready to plunder!')
         const result = await captureScreenshots({ ...opts, progress })
         await writeWebappReport(opts.outDir, result)
         process.exit(0)

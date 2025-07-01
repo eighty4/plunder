@@ -2,10 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- API `checkPlaywrightBrowserDistributions` checks if Playwright browser
+  distributions are installed
 - Fallback exports for web bundling package clients using `lib/api.web.ts`
-- `getSupportedDeviceLabels` filters out landscape from Playwright
+- API `CaptureWebSocket` serves webapp index.html with bootstrap metadata
+
+### Fixed
+
+- API `getSupportedDeviceLabels` filters out landscape from Playwright
   device configurations
-- CaptureWebSocket serves webapp index.html with bootstrap metadata
 
 ## [v0.0.5] - 2025-06-12
 

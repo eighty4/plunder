@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import type { Page } from 'playwright-core'
 import { ZodError, z } from 'zod'
-import { launchBrowser } from './playwright.ts'
+import { launchBrowser } from './playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
 
 export interface CheckHrefsOptions {

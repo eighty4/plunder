@@ -12,9 +12,8 @@ import {
     type BrowserEngine,
     BrowserEngineValues,
     type BrowserOptions,
-    type BrowserProcess,
-    launchBrowser,
-} from './playwright.ts'
+} from './playwrightBrowsers.ts'
+import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
