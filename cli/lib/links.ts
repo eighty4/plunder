@@ -24,7 +24,7 @@ export async function linkCheckingCommand(
         if (e instanceof InvalidCheckHrefsOption) {
             errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
         } else {
-            errorPrint(e.message)
+            errorPrint(e)
         }
     }
 }

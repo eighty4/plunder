@@ -1,21 +1,21 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import type { Page } from 'playwright-core'
 import z, { ZodError } from 'zod'
 import { type CaptureHook, resolveCaptureHook } from './captureHook.ts'
 import { resolveCaptureManifest } from './captureManifest.ts'
 import { type CaptureProgressCallback } from './captureProgress.ts'
 import { CaptureProgressUpdater } from './captureUpdater.ts'
 import { type CssMediaQuery } from './cssParse.ts'
+import { resolveDevices } from './devices.ts'
 import { makeOutDirForPageUrl } from './fileSystem.ts'
 import { parsePagesForCapture } from './pageParse.ts'
 import {
     type BrowserEngine,
     BrowserEngineValues,
-    type BrowserOptions,
 } from './playwrightBrowsers.ts'
-import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
 import { installMissingBrowserDistributions } from './playwrightInstall.ts'
-import { resolveDevices } from './devices.ts'
+import { BrowserManager } from './playwrightProcess.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
@@ -187,14 +187,14 @@ export async function captureScreenshots(
         ? await resolveCaptureHook(opts.captureHook)
         : null
     const updater = new CaptureProgressUpdater(opts.progress)
-    const browser = await launchBrowser(opts)
+    const browsers = new BrowserManager()
     try {
         const result = await Promise.all(
             Object.entries(
-                await resolveUrlsAndMediaQueries(browser, opts, updater),
+                await resolveUrlsAndMediaQueries(browsers, opts, updater),
             ).map(([url, mediaQueries]) =>
                 captureScreenshotsForPage(
-                    browser,
+                    browsers,
                     url,
                     captureHook,
                     mediaQueries,
@@ -205,8 +205,11 @@ export async function captureScreenshots(
         )
         updater.markCompleted()
         return result
+    } catch (e) {
+        console.log(e)
+        throw e
     } finally {
-        await browser.close()
+        await browsers.shutdown()
     }
 }
 
@@ -223,13 +226,13 @@ async function installCaptureBrowserDistributions(
 }
 
 async function resolveUrlsAndMediaQueries(
-    browser: BrowserProcess,
+    browsers: BrowserManager,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
 ): Promise<Record<string, null | Array<CssMediaQuery>>> {
     const result: Record<string, null | Array<CssMediaQuery>> = {}
     if (opts.breakpoints) {
-        const parsedPages = await parsePagesForCapture(browser, opts, updater)
+        const parsedPages = await parsePagesForCapture(browsers, opts, updater)
         for (const { url, mediaQueries } of parsedPages) {
             result[url] = mediaQueries
         }
@@ -241,7 +244,7 @@ async function resolveUrlsAndMediaQueries(
 }
 
 async function captureScreenshotsForPage(
-    browser: BrowserProcess,
+    browsers: BrowserManager,
     url: string,
     captureHook: CaptureHook | null,
     mediaQueries: Array<CssMediaQuery> | null,
@@ -258,14 +261,12 @@ async function captureScreenshotsForPage(
     updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const takingScreenshots = Object.entries(manifest.screenshots).map(
         async ([file, browserOpts]) => {
-            await screenshot(
-                browser,
-                outDir.webpageOutDir,
-                url,
-                captureHook,
-                file,
+            const page = await browsers.newPage(
+                opts.browser,
+                opts.headless,
                 browserOpts,
             )
+            await screenshot(page, outDir.webpageOutDir, url, captureHook, file)
             updater.markScreenshotCompleted()
         },
     )
@@ -281,14 +282,12 @@ async function captureScreenshotsForPage(
 }
 
 async function screenshot(
-    browser: BrowserProcess,
+    page: Page,
     outDir: string,
     url: string,
     captureHook: CaptureHook | null,
     file: string,
-    opts: BrowserOptions,
 ) {
-    const page = await browser.newPage(opts)
     await page.goto(url)
     if (captureHook !== null) {
         await captureHook(page)

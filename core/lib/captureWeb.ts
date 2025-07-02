@@ -10,8 +10,8 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
 import { parsePageForBreakpoints } from './pageParse.ts'
-import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
 import { installMissingBrowserDistributions } from './playwrightInstall.ts'
+import { BrowserManager } from './playwrightProcess.ts'
 
 export type OpenPageReq = {
     type: 'open-page'
@@ -66,13 +66,25 @@ export interface CaptureWebSocketOpts {
     serveUI: false | string
 }
 
-export class CaptureWebSocket {
-    #browser: Promise<BrowserProcess>
+// installs browsers before creating CaptureWebSocket and starting http services
+export async function launchCaptureWebSocket(opts: CaptureWebSocketOpts) {
+    await installMissingBrowserDistributions(new Set(['chromium']), true)
+    return new CaptureWebSocketImpl(opts)
+}
+
+export type CaptureWebSocket = {
+    get port(): number
+    shutdown(): Promise<void>
+}
+
+class CaptureWebSocketImpl implements CaptureWebSocket {
+    #browsers: BrowserManager
     #port: number
     #server: HttpServer
     #wss: WebSocketServer
 
     constructor(opts: CaptureWebSocketOpts) {
+        this.#browsers = new BrowserManager()
         const port = (this.#port = opts.port || 7944)
         this.#server = createHttpServer(
             createRequestListener(port, opts.serveUI),
@@ -81,22 +93,15 @@ export class CaptureWebSocket {
         this.#server.on('upgrade', createUpgradeListener(this.#wss))
         this.#server.listen(this.#port)
         this.#wss.on('connection', this.#onConnection)
-        this.#browser = installMissingBrowserDistributions(
-            new Set(['chromium']),
-            true,
-        ).then(() => launchBrowser())
-    }
-
-    async initializing() {
-        await this.#browser
     }
 
     get port(): number {
         return this.#port
     }
 
-    onClose(): Promise<void> {
-        return new Promise(res => this.#server.once('close', res))
+    async shutdown(): Promise<void> {
+        await new Promise(res => this.#server.close(res))
+        await this.#browsers.shutdown()
     }
 
     #onConnection = (ws: WebSocket) => {
@@ -118,7 +123,7 @@ export class CaptureWebSocket {
         console.log('ws recv', msg.type)
         switch (msg.type) {
             case 'open-page':
-                this.#browser.then(browser => onOpenPage(browser, ws, msg.url))
+                onOpenPage(this.#browsers, ws, msg.url)
                 break
             default:
                 console.error(
@@ -131,8 +136,13 @@ export class CaptureWebSocket {
     }
 }
 
-async function onOpenPage(browser: BrowserProcess, ws: WebSocket, url: string) {
-    const { mediaQueries } = await parsePageForBreakpoints(browser, url)
+async function onOpenPage(
+    browsers: BrowserManager,
+    ws: WebSocket,
+    url: string,
+) {
+    const page = await browsers.newPage('chromium', true)
+    const { mediaQueries } = await parsePageForBreakpoints(page, url)
     send(ws, {
         type: 'media-queries',
         url,

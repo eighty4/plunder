@@ -1,69 +1,131 @@
 import type { Browser, BrowserType, Page } from 'playwright'
 import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
 
-export interface PlaywrightOptions {
-    browser?: BrowserEngine
-    contextLimit?: number
-    headless?: boolean
+type BrowserLookup<T> = Record<
+    BrowserEngine,
+    Record<'headed' | 'headless', T | null>
+>
+
+type QueuedPageReq = {
+    browser: BrowserEngine
+    headless: boolean
+    opts?: BrowserOptions
+    res: (page: Page) => void
 }
 
-export async function launchBrowser(
-    opts?: PlaywrightOptions,
-): Promise<BrowserProcess> {
-    const browser = opts?.browser || 'chromium'
-    const headless = opts?.headless ?? true
-    const browserType = await resolvePlaywrightBrowserType(browser)
-    return new BrowserProcess(
-        await browserType.launch({ headless }),
-        opts?.contextLimit,
-    )
-}
-
-export class BrowserProcess {
-    #browser: Browser
+export class BrowserManager {
+    // map of browser instances
+    #browsers: BrowserLookup<Browser>
     #contextLimit: number
-    #queued: Array<{ res: (page: Page) => void; opts?: BrowserOptions }> = []
+    // tracks browsers as they're launched to prevent relaunching
+    #launched: BrowserLookup<Promise<Browser>>
+    #queued: Array<QueuedPageReq>
 
-    constructor(browser: Browser, ctxLimit: number = 2) {
-        this.#browser = browser
+    constructor(ctxLimit: number = 2) {
+        this.#browsers = createBrowserLookup()
         this.#contextLimit = getContextLimitEnvVar() ?? ctxLimit
+        this.#launched = createBrowserLookup()
+        this.#queued = []
     }
 
-    async newPage(opts?: BrowserOptions): Promise<Page> {
-        if (this.#browser.contexts().length > this.#contextLimit) {
+    async newPage(
+        browser: BrowserEngine,
+        headless: boolean,
+        opts?: BrowserOptions,
+    ): Promise<Page> {
+        if (this.#currentContextCount > this.#contextLimit) {
             return new Promise(res => {
-                this.#queued.push({ res, opts })
+                this.#queued.push({ browser, headless, res, opts })
             })
         } else {
-            return this.#newPage(opts)
+            return this.#newPage(browser, headless, opts)
         }
     }
 
-    async close(): Promise<void> {
-        this.#queued = []
-        return this.#browser.close()
+    async shutdown() {
+        await Promise.all(
+            Object.values(this.#launched)
+                .flatMap(browsers => Object.values(browsers))
+                .filter(browser => browser !== null)
+                .map(async browser => (await browser).close()),
+        )
     }
 
-    async #newPage(opts?: BrowserOptions): Promise<Page> {
+    async #browser(
+        browser: BrowserEngine,
+        headless: boolean,
+    ): Promise<Browser> {
+        const headlessKey = headless ? 'headless' : 'headed'
+        if (!this.#launched[browser][headlessKey]) {
+            this.#launched[browser][headlessKey] = launchBrowser(
+                browser,
+                headless,
+            )
+        }
+        if (!this.#browsers[browser][headlessKey]) {
+            this.#browsers[browser][headlessKey] = (
+                await this.#launched[browser][headlessKey]
+            ).once('disconnected', () =>
+                this.#onBrowserDisconnected(browser, headless),
+            )
+        }
+        return this.#browsers[browser][headlessKey]
+    }
+
+    get #currentContextCount(): number {
+        return Object.values(this.#browsers)
+            .flatMap(browsers => Object.values(browsers))
+            .filter(browser => browser !== null)
+            .reduce((n, browser) => {
+                return n + browser.contexts().length
+            }, 0)
+    }
+
+    async #newPage(
+        browser: BrowserEngine,
+        headless: boolean,
+        opts?: BrowserOptions,
+    ): Promise<Page> {
         this.#contextLimit++
-        const page = await this.#browser.newPage({
+        const page = await (
+            await this.#browser(browser, headless)
+        ).newPage({
             viewport: opts?.viewport,
         })
-        page.on('close', this.#onPageClose)
+        page.once('close', this.#onPageClose)
         return page
     }
 
-    #onPageClose = (page: Page) => {
-        page.off('close', this.#onPageClose)
-        this.#contextLimit--
-        this.#resolveQueued()
+    #onBrowserDisconnected(browser: BrowserEngine, headless: boolean) {
+        const headlessKey = headless ? 'headless' : 'headed'
+        this.#browsers[browser][headlessKey] = this.#launched[browser][
+            headlessKey
+        ] = null
     }
 
-    #resolveQueued() {
-        if (this.#queued.length) {
-            const { res, opts } = this.#queued.pop()!
-            this.#newPage(opts).then(res)
+    #onPageClose = () => {
+        this.#contextLimit--
+        const popped = this.#queued.pop()
+        if (popped) {
+            const { browser, headless, opts, res } = popped
+            this.#newPage(browser, headless, opts).then(res)
         }
+    }
+}
+
+async function launchBrowser(
+    browser: BrowserEngine,
+    headless: boolean,
+): Promise<Browser> {
+    const browserType = await resolvePlaywrightBrowserType(browser)
+    return await browserType.launch({ headless })
+}
+
+function createBrowserLookup(): BrowserLookup<any> {
+    return {
+        chromium: { headed: null, headless: null },
+        firefox: { headed: null, headless: null },
+        webkit: { headed: null, headless: null },
     }
 }
 

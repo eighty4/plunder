@@ -1,12 +1,12 @@
 import {
     CaptureHookError,
     CaptureHookImportError,
-    captureScreenshots,
-    CaptureWebSocket,
-    InvalidCaptureOptionsError,
     type CaptureProgress,
     type CaptureScreenshotsOptions,
     type CaptureScreenshotsResult,
+    captureScreenshots,
+    InvalidCaptureOptionsError,
+    launchCaptureWebSocket,
     UnspecifiedCaptureSourceError,
 } from '@eighty4/plunder-core'
 import { createReadStream, createWriteStream } from 'node:fs'
@@ -34,10 +34,9 @@ export async function activeScreenshotCapture(
     }
     const modulePath = fileURLToPath(import.meta.url)
     const webappPath = resolve(modulePath, '../../webapp/index.html')
-    const webSocket = new CaptureWebSocket({ serveUI: webappPath })
-    await webSocket.initializing()
+    const webSocket = await launchCaptureWebSocket({ serveUI: webappPath })
     console.log('Plundering your webdev at http://localhost:' + webSocket.port)
-    return webSocket.onClose()
+    return new Promise(() => {})
 }
 
 export async function captureScreenshotsCommand(
@@ -104,7 +103,7 @@ export async function captureScreenshotsCommand(
                 `Error writing webapp report to ${opts.outDir}.\n\n${pad}${e.cause.message}`,
             )
         } else {
-            errorPrint(e.message)
+            errorPrint(e)
         }
     }
 }

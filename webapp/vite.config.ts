@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import path from 'node:path/posix'
 import { defineConfig, PluginOption, type UserConfig } from 'vite'
 import { viteSingleFile as singlefile } from 'vite-plugin-singlefile'
-import { CaptureWebSocket } from '@eighty4/plunder-core'
+import { launchCaptureWebSocket } from '@eighty4/plunder-core'
 
 // Organization order
 //  Env / config / debug output
@@ -140,7 +140,10 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
             debugPrintAndValidate(plunderDev)
             switch (plunderDev.mode) {
                 case 'active':
-                    new CaptureWebSocket({ port: wsPort, serveUI: false })
+                    await launchCaptureWebSocket({
+                        port: wsPort,
+                        serveUI: false,
+                    })
                     const seed = `globalThis['plunder']={mode:'active',port:${wsPort}}`
                     return {
                         plugins: [

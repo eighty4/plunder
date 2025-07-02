@@ -1,9 +1,10 @@
+import type { Page } from 'playwright-core'
 import type { CaptureScreenshotsOptions } from './api.ts'
 import type { CaptureProgressUpdater } from './captureUpdater.js'
 import { findAllCss } from './cssFind.ts'
 import { type CssMediaQuery, parseCssForMediaQueries } from './cssParse.ts'
 import { findAllSameOriginAnchorHrefs } from './domParse.ts'
-import type { BrowserProcess } from './playwrightProcess.ts'
+import type { BrowserManager } from './playwrightProcess.ts'
 import { getBaseHref } from './url.ts'
 
 export interface ParsePageResult {
@@ -13,11 +14,10 @@ export interface ParsePageResult {
 }
 
 export async function parsePageForBreakpoints(
-    browser: BrowserProcess,
+    page: Page,
     url: string,
     recursive: boolean = false,
 ): Promise<ParsePageResult> {
-    const page = await browser.newPage()
     await page.goto(url)
     const baseHref = await getBaseHref(page)
     const css = await findAllCss(page, baseHref)
@@ -35,7 +35,7 @@ export async function parsePageForBreakpoints(
 }
 
 export async function parsePagesForCapture(
-    browser: BrowserProcess,
+    browsers: BrowserManager,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
 ): Promise<Array<ParsePageResult>> {
@@ -46,11 +46,11 @@ export async function parsePagesForCapture(
         updater.addToParsePageTotal(urls.length)
         for (const url of urls) {
             if (typeof parsingPages[url] === 'undefined') {
-                parsingPages[url] = parsePageForBreakpoints(
-                    browser,
-                    url,
-                    opts.recursive,
-                )
+                parsingPages[url] = browsers
+                    .newPage('chromium', true)
+                    .then(page =>
+                        parsePageForBreakpoints(page, url, opts.recursive),
+                    )
             }
         }
     }
