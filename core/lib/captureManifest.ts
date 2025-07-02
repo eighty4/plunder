@@ -1,10 +1,10 @@
-import { type CaptureScreenshotsOptions } from './capture.ts'
 import {
     type CssBreakpoint,
     type CssDimension,
     type CssMediaQuery,
     type CssUom,
 } from './cssParse.ts'
+import { type CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import { type DeviceDefinition, resolveDevices } from './devices.ts'
 import {
     type BrowserEngine,

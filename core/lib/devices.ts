@@ -1,5 +1,5 @@
 import { devices } from 'playwright-core'
-import type { CaptureScreenshotsOptions } from './capture.ts'
+import type { CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
 
 const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =

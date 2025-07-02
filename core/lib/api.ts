@@ -1,3 +1,7 @@
+export { CaptureHookError, CaptureHookImportError } from './captureHook.ts'
+export * from './captureLinks.ts'
+export * from './captureManifest.ts'
+export * from './captureProgress.ts'
 export {
     captureScreenshots,
     type CaptureScreenshotsOptions,
@@ -5,12 +9,8 @@ export {
     InvalidCaptureOptionsError,
     UnspecifiedCaptureSourceError,
     validateCaptureScreenshotsOptions,
-} from './capture.ts'
-export { CaptureHookError, CaptureHookImportError } from './captureHook.ts'
-export * from './captureManifest.ts'
-export * from './captureProgress.ts'
+} from './captureScreenshots.ts'
 export * from './captureWeb.ts'
-export * from './checkHrefs.ts'
 export {
     type CssMediaQuery,
     type CssBreakpoint,

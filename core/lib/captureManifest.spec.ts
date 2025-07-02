@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { type CaptureScreenshotsOptions } from './capture.ts'
+import { type CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import { resolveCaptureManifest } from './captureManifest.ts'
 import { compareMediaQueries, type CssMediaQuery } from './cssParse.ts'
 

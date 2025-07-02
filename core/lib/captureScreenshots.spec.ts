@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { validateCaptureScreenshotsOptions } from './capture.ts'
+import { validateCaptureScreenshotsOptions } from './captureScreenshots.ts'
 
 describe('validateCaptureScreenshotsOptions', () => {
     it('throws error for all required fields', () => {
