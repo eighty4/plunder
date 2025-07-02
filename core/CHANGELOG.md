@@ -13,6 +13,8 @@
 
 ### Fixed
 
+- `captureScreenshots` takes emulated device screenshots with the
+  browser engine native to that device
 - `getSupportedDeviceLabels` filters out landscape from Playwright
   device configurations
 

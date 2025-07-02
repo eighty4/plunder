@@ -35,6 +35,7 @@ describe('resolveCaptureManifest', () => {
             },
         ].sort(compareMediaQueries)
         const result = resolveCaptureManifest('dir/path', 'url', mediaQueries, {
+            browser: 'firefox',
             deviceQueries: false,
         } as CaptureScreenshotsOptions)
         assert.deepEqual(result, {
@@ -80,27 +81,39 @@ describe('resolveCaptureManifest', () => {
             ],
             screenshots: {
                 'w_599.png': {
-                    viewport: {
-                        height: 600,
-                        width: 599,
+                    browser: 'firefox',
+                    pageSpec: {
+                        viewport: {
+                            height: 600,
+                            width: 599,
+                        },
                     },
                 },
                 'w_600.png': {
-                    viewport: {
-                        height: 600,
-                        width: 600,
+                    browser: 'firefox',
+                    pageSpec: {
+                        viewport: {
+                            height: 600,
+                            width: 600,
+                        },
                     },
                 },
                 'w_800.png': {
-                    viewport: {
-                        height: 600,
-                        width: 800,
+                    browser: 'firefox',
+                    pageSpec: {
+                        viewport: {
+                            height: 600,
+                            width: 800,
+                        },
                     },
                 },
                 'w_801.png': {
-                    viewport: {
-                        height: 600,
-                        width: 801,
+                    browser: 'firefox',
+                    pageSpec: {
+                        viewport: {
+                            height: 600,
+                            width: 801,
+                        },
                     },
                 },
             },
@@ -110,6 +123,7 @@ describe('resolveCaptureManifest', () => {
 
     it('resolves landscape/portrait device screenshots', () => {
         const result = resolveCaptureManifest('dir/path', 'url', [], {
+            browser: 'firefox',
             deviceQueries: ['iPhone 15 Pro Max'],
         } as CaptureScreenshotsOptions)
         assert.deepEqual(result, {
@@ -142,17 +156,23 @@ describe('resolveCaptureManifest', () => {
             mediaQueryBreakpoints: [],
             screenshots: {
                 'iphone-15-pro-max_landscape.png': {
-                    deviceScaleFactor: 3,
-                    viewport: {
-                        width: 814,
-                        height: 380,
+                    browser: 'webkit',
+                    pageSpec: {
+                        deviceScaleFactor: 3,
+                        viewport: {
+                            width: 814,
+                            height: 380,
+                        },
                     },
                 },
                 'iphone-15-pro-max_portrait.png': {
-                    deviceScaleFactor: 3,
-                    viewport: {
-                        width: 430,
-                        height: 739,
+                    browser: 'webkit',
+                    pageSpec: {
+                        deviceScaleFactor: 3,
+                        viewport: {
+                            width: 430,
+                            height: 739,
+                        },
                     },
                 },
             },
@@ -161,8 +181,10 @@ describe('resolveCaptureManifest', () => {
     })
 
     it('resolves desktop device screenshots', () => {
-        const deviceQueries = ['Desktop Chrome', 'Desktop Chrome HiDPI']
-        const opts = { deviceQueries } as CaptureScreenshotsOptions
+        const opts = {
+            browser: 'firefox',
+            deviceQueries: ['Desktop Chrome', 'Desktop Chrome HiDPI'],
+        } as CaptureScreenshotsOptions
         const result = resolveCaptureManifest('dir/path', 'url', [], opts)
         assert.deepEqual(result, {
             dir: 'dir/path',
@@ -203,17 +225,23 @@ describe('resolveCaptureManifest', () => {
             mediaQueryBreakpoints: [],
             screenshots: {
                 'desktop-chrome.png': {
-                    deviceScaleFactor: 1,
-                    viewport: {
-                        width: 1280,
-                        height: 720,
+                    browser: 'chromium',
+                    pageSpec: {
+                        deviceScaleFactor: 1,
+                        viewport: {
+                            width: 1280,
+                            height: 720,
+                        },
                     },
                 },
                 'desktop-chrome-hidpi.png': {
-                    deviceScaleFactor: 2,
-                    viewport: {
-                        width: 1280,
-                        height: 720,
+                    browser: 'chromium',
+                    pageSpec: {
+                        deviceScaleFactor: 2,
+                        viewport: {
+                            width: 1280,
+                            height: 720,
+                        },
                     },
                 },
             },

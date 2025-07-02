@@ -6,7 +6,10 @@ import {
     type CssUom,
 } from './cssParse.ts'
 import { type DeviceDefinition, resolveDevices } from './devices.ts'
-import { type BrowserOptions } from './playwrightBrowsers.ts'
+import {
+    type BrowserEngine,
+    type BrowserOptions,
+} from './playwrightBrowsers.ts'
 
 // representation of json written to capture out dir for each
 // captured webpage types are exported from lib and used by webapp
@@ -14,8 +17,13 @@ export interface CaptureScreenshotManifest {
     dir: string
     devices: Array<DeviceScreenshots>
     mediaQueryBreakpoints: Array<MediaQueryBreakpoint> | null
-    screenshots: Record<string, BrowserOptions>
+    screenshots: Record<string, ScreenshotConfiguration>
     url: string
+}
+
+export interface ScreenshotConfiguration {
+    browser: BrowserEngine
+    pageSpec: BrowserOptions
 }
 
 export interface MediaQueryBreakpoint {
@@ -56,7 +64,7 @@ export function resolveCaptureManifest(
     }
     resolveDeviceScreenshots(manifest, opts)
     if (mediaQueries) {
-        resolveMediaQueryScreenshots(manifest, mediaQueries)
+        resolveMediaQueryScreenshots(manifest, mediaQueries, opts)
     }
     return manifest
 }
@@ -86,6 +94,7 @@ function createMergingStructure(): DuplicateTracking {
 function resolveMediaQueryScreenshots(
     manifest: CaptureScreenshotManifest,
     mediaQueries: Array<CssMediaQuery>,
+    opts: CaptureScreenshotsOptions,
 ) {
     manifest.mediaQueryBreakpoints = []
     const merging = createMergingStructure()
@@ -151,7 +160,8 @@ function resolveMediaQueryScreenshots(
         const file = `w_${width}.png`
         if (!manifest.screenshots[file]) {
             manifest.screenshots[file] = {
-                viewport: { height: 600, width },
+                browser: opts.browser,
+                pageSpec: { viewport: { height: 600, width } },
             }
         }
     }
@@ -167,12 +177,21 @@ function resolveDeviceScreenshots(
         let portrait: string | undefined = undefined
         if (definition.type === 'desktop') {
             landscape = `${filenamePrefix}.png`
-            manifest.screenshots[landscape] = definition.landscape
+            manifest.screenshots[landscape] = {
+                browser: definition.browser,
+                pageSpec: definition.landscape,
+            }
         } else if (definition.type === 'mobile') {
             landscape = `${filenamePrefix}_landscape.png`.replaceAll('-_', '_')
-            manifest.screenshots[landscape] = definition.landscape
+            manifest.screenshots[landscape] = {
+                browser: definition.browser,
+                pageSpec: definition.landscape,
+            }
             portrait = `${filenamePrefix}_portrait.png`.replaceAll('-_', '_')
-            manifest.screenshots[portrait] = definition.portrait
+            manifest.screenshots[portrait] = {
+                browser: definition.browser,
+                pageSpec: definition.portrait,
+            }
         }
         manifest.devices.push({
             definition,

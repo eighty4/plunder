@@ -260,11 +260,11 @@ async function captureScreenshotsForPage(
     )
     updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
     const takingScreenshots = Object.entries(manifest.screenshots).map(
-        async ([file, browserOpts]) => {
+        async ([file, { browser, pageSpec }]) => {
             const page = await browsers.newPage(
-                opts.browser,
+                browser,
                 opts.headless,
-                browserOpts,
+                pageSpec,
             )
             await screenshot(page, outDir.webpageOutDir, url, captureHook, file)
             updater.markScreenshotCompleted()
