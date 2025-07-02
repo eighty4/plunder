@@ -4,7 +4,7 @@
 
 ### Added
 
-- CLI screenshot capture and link checking will prompt user before starting
+- Screenshot capture and link checking will prompt user before starting
   Playwright browser downloads
 - `plunder --ui` starts web socket active mode
 

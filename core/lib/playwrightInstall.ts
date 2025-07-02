@@ -14,14 +14,15 @@ export type PlaywrightBrowserDistributions = {
 }
 
 export async function checkPlaywrightBrowserDistributions(
-    browsers: Array<BrowserEngine>,
+    browsers: Set<BrowserEngine>,
     headless: boolean,
 ): Promise<PlaywrightBrowserDistributions> {
-    if (!browsers.length) {
+    if (!browsers.size) {
         throw new TypeError('must provide browsers to lookup')
     }
-    const playwrightDistNames = browsers.map(browser =>
-        resolvePlaywrightBrowserEngine(browser, headless),
+    const playwrightDistNames = resolvePlaywrightBrowserEngines(
+        browsers,
+        headless,
     )
     const [playwrightManifest, playwrightDists] = await Promise.all([
         readBrowsersManifest(),
@@ -33,9 +34,8 @@ export async function checkPlaywrightBrowserDistributions(
         notInstalled: [],
     }
 
-    for (let i = 0; i < browsers.length; i++) {
-        const browser: BrowserEngine = browsers[i]
-        const playwrightDistName = playwrightDistNames[i]
+    for (const browser of browsers) {
+        const playwrightDistName = playwrightDistNames[browser]!
         const formattedDistName = playwrightDistName.replace(/-/g, '_')
         const playwrightDistRevision = playwrightManifest.find(
             pb => pb.name === playwrightDistName,
@@ -92,12 +92,25 @@ async function readInstalledDistributions(): Promise<Array<string>> {
 }
 
 export async function installMissingBrowserDistributions(
-    browser: BrowserEngine,
+    browsers: Set<BrowserEngine>,
     headless: boolean,
 ) {
-    await installBrowsersForNpmInstall([
-        resolvePlaywrightBrowserEngine(browser, headless),
-    ])
+    await installBrowsersForNpmInstall(
+        Array.from(browsers).map(browser =>
+            resolvePlaywrightBrowserEngine(browser, headless),
+        ),
+    )
+}
+
+function resolvePlaywrightBrowserEngines(
+    browsers: Set<BrowserEngine>,
+    headless: boolean,
+): Partial<Record<BrowserEngine, string>> {
+    const result: Partial<Record<BrowserEngine, string>> = {}
+    for (const browser of browsers) {
+        result[browser] = resolvePlaywrightBrowserEngine(browser, headless)
+    }
+    return result
 }
 
 function resolvePlaywrightBrowserEngine(

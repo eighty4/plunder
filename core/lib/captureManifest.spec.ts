@@ -117,6 +117,7 @@ describe('resolveCaptureManifest', () => {
             devices: [
                 {
                     definition: {
+                        browser: 'webkit',
                         label: 'iPhone 15 Pro Max',
                         type: 'mobile',
                         landscape: {
@@ -168,6 +169,7 @@ describe('resolveCaptureManifest', () => {
             devices: [
                 {
                     definition: {
+                        browser: 'chromium',
                         label: 'Desktop Chrome',
                         type: 'desktop',
                         landscape: {
@@ -183,6 +185,7 @@ describe('resolveCaptureManifest', () => {
                 },
                 {
                     definition: {
+                        browser: 'chromium',
                         label: 'Desktop Chrome HiDPI',
                         type: 'desktop',
                         landscape: {

@@ -2,14 +2,32 @@ import { stdin } from 'node:process'
 import {
     type BrowserEngine,
     checkPlaywrightBrowserDistributions,
+    resolveDevices,
 } from '@eighty4/plunder-core'
 
-export async function confirmBrowserInstall(
-    browser: BrowserEngine,
+export async function confirmCaptureBrowserInstalls(
+    defaultBrowser: BrowserEngine,
+    headless: boolean,
+    modernDevices: boolean,
+    deviceQueries: false | Array<string>,
+): Promise<void> {
+    await confirmBrowserInstalls(
+        new Set([
+            defaultBrowser,
+            ...resolveDevices({ deviceQueries, modernDevices }).map(
+                device => device.browser,
+            ),
+        ]),
+        headless,
+    )
+}
+
+export async function confirmBrowserInstalls(
+    browsers: Set<BrowserEngine>,
     headless: boolean,
 ): Promise<void> {
     const checkDists = await checkPlaywrightBrowserDistributions(
-        [browser],
+        browsers,
         headless,
     )
     const updateCount =

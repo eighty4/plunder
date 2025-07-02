@@ -93,7 +93,10 @@ if (parsed.help) {
         isSkipConfirmInstall(),
     )
 } else if (parsed['ui'] === true) {
-    await activeScreenshotCapture(isSkipConfirmInstall())
+    await activeScreenshotCapture(
+        isSkipConfirmInstall(),
+        parsed['not-headless'] !== true,
+    )
 } else {
     await captureScreenshotsCommand(
         {

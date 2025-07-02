@@ -21,6 +21,7 @@ export {
     getDefaultDeviceLabels,
     getDeviceLabelSearchMatches,
     getSupportedDeviceLabels,
+    resolveDevices,
 } from './devices.ts'
 export {
     BrowserEngineValues,

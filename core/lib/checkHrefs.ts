@@ -3,6 +3,7 @@ import type { Page } from 'playwright-core'
 import { ZodError, z } from 'zod'
 import { launchBrowser } from './playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
+import { installMissingBrowserDistributions } from './playwrightInstall.ts'
 
 export interface CheckHrefsOptions {
     /**
@@ -63,6 +64,7 @@ export async function checkAnchorHrefs(
     opts: CheckHrefsOptions,
 ): Promise<CheckHrefsResult> {
     validateCheckHrefsOptions(opts)
+    await installMissingBrowserDistributions(new Set(['chromium']), true)
     const browser = await launchBrowser({ browser: 'chromium', headless: true })
     try {
         const collectedHrefs = await Promise.all(

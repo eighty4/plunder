@@ -11,6 +11,7 @@ import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
 import { parsePageForBreakpoints } from './pageParse.ts'
 import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
+import { installMissingBrowserDistributions } from './playwrightInstall.ts'
 
 export type OpenPageReq = {
     type: 'open-page'
@@ -80,7 +81,10 @@ export class CaptureWebSocket {
         this.#server.on('upgrade', createUpgradeListener(this.#wss))
         this.#server.listen(this.#port)
         this.#wss.on('connection', this.#onConnection)
-        this.#browser = launchBrowser()
+        this.#browser = installMissingBrowserDistributions(
+            new Set(['chromium']),
+            true,
+        ).then(() => launchBrowser())
     }
 
     async initializing() {

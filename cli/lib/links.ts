@@ -5,7 +5,7 @@ import {
     type CheckHrefsResult,
 } from '@eighty4/plunder-core'
 import ansi from './ansi.ts'
-import { confirmBrowserInstall } from './browser.ts'
+import { confirmBrowserInstalls } from './browser.ts'
 import { errorPrint } from './error.ts'
 
 export async function linkCheckingCommand(
@@ -15,7 +15,7 @@ export async function linkCheckingCommand(
     console.log('Plundering anchor tags for broken links')
     try {
         if (!installConfirmed) {
-            await confirmBrowserInstall('chromium', true)
+            await confirmBrowserInstalls(new Set(['chromium']), true)
         }
         const result = await checkAnchorHrefs(opts)
         printResult(result)

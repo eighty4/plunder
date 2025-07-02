@@ -1,6 +1,5 @@
 import type { Browser, BrowserType, Page } from 'playwright'
 import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
-import { installMissingBrowserDistributions } from './playwrightInstall.ts'
 
 export interface PlaywrightOptions {
     browser?: BrowserEngine
@@ -13,7 +12,6 @@ export async function launchBrowser(
 ): Promise<BrowserProcess> {
     const browser = opts?.browser || 'chromium'
     const headless = opts?.headless ?? true
-    await installMissingBrowserDistributions(browser, headless)
     const browserType = await resolvePlaywrightBrowserType(browser)
     return new BrowserProcess(
         await browserType.launch({ headless }),

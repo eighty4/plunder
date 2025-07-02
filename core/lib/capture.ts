@@ -14,6 +14,8 @@ import {
     type BrowserOptions,
 } from './playwrightBrowsers.ts'
 import { type BrowserProcess, launchBrowser } from './playwrightProcess.ts'
+import { installMissingBrowserDistributions } from './playwrightInstall.ts'
+import { resolveDevices } from './devices.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
@@ -180,6 +182,7 @@ export async function captureScreenshots(
     opts: CaptureScreenshotsOptions,
 ): Promise<Array<CaptureScreenshotsResult>> {
     validateCaptureScreenshotsOptions(opts)
+    await installCaptureBrowserDistributions(opts)
     const captureHook = opts.captureHook
         ? await resolveCaptureHook(opts.captureHook)
         : null
@@ -205,6 +208,18 @@ export async function captureScreenshots(
     } finally {
         await browser.close()
     }
+}
+
+async function installCaptureBrowserDistributions(
+    opts: CaptureScreenshotsOptions,
+): Promise<void> {
+    await installMissingBrowserDistributions(
+        new Set([
+            opts.browser,
+            ...resolveDevices(opts).map(device => device.browser),
+        ]),
+        opts.headless,
+    )
 }
 
 async function resolveUrlsAndMediaQueries(

@@ -16,14 +16,21 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { z } from 'zod'
 import ansi from './ansi.ts'
-import { confirmBrowserInstall } from './browser.ts'
+import {
+    confirmBrowserInstalls,
+    confirmCaptureBrowserInstalls,
+} from './browser.ts'
 import { errorPrint } from './error.ts'
 
 export async function activeScreenshotCapture(
     installConfirmed: boolean,
+    headless: boolean,
 ): Promise<void> {
     if (!installConfirmed) {
-        await confirmBrowserInstall('chromium', true)
+        await confirmBrowserInstalls(
+            new Set(['chromium', 'firefox', 'webkit']),
+            headless,
+        )
     }
     const modulePath = fileURLToPath(import.meta.url)
     const webappPath = resolve(modulePath, '../../webapp/index.html')
@@ -41,7 +48,12 @@ export async function captureScreenshotsCommand(
 
     try {
         if (!installConfirmed) {
-            await confirmBrowserInstall(opts.browser, opts.headless)
+            await confirmCaptureBrowserInstalls(
+                opts.browser,
+                opts.headless,
+                opts.modernDevices,
+                opts.deviceQueries,
+            )
         }
         console.log('Get ready to plunder!')
         const result = await captureScreenshots({ ...opts, progress })

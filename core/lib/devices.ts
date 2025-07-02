@@ -1,6 +1,6 @@
 import { devices } from 'playwright-core'
 import type { CaptureScreenshotsOptions } from './capture.ts'
-import type { BrowserOptions } from './playwrightBrowsers.ts'
+import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
 
 const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
     Object.freeze([
@@ -21,11 +21,13 @@ const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
 
 export type DeviceDefinition =
     | {
+          browser: BrowserEngine
           label: string
           type: 'desktop'
           landscape: BrowserDefinition
       }
     | {
+          browser: BrowserEngine
           label: string
           type: 'mobile'
           landscape: BrowserDefinition
@@ -72,7 +74,7 @@ export function getDeviceLabelSearchMatches(
 }
 
 export function resolveDevices(
-    opts: CaptureScreenshotsOptions,
+    opts: Pick<CaptureScreenshotsOptions, 'deviceQueries' | 'modernDevices'>,
 ): Array<DeviceDefinition> {
     const devices = resolveDeviceQueries(opts.deviceQueries)
     if (opts.modernDevices) {
@@ -140,15 +142,18 @@ function buildDeviceDefinitions(
     for (const deviceLabel of deviceLabels) {
         const primary = getBrowserOptions(deviceLabel)
         const landscapeLabel = deviceLabel + ' landscape'
+        const browser: BrowserEngine = devices[deviceLabel].defaultBrowserType
         result.push(
             devices[landscapeLabel]
                 ? {
+                      browser,
                       label: deviceLabel as string,
                       type: 'mobile',
                       landscape: getBrowserOptions(landscapeLabel),
                       portrait: primary,
                   }
                 : {
+                      browser,
                       label: deviceLabel as string,
                       type: 'desktop',
                       landscape: primary,
