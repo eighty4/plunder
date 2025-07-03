@@ -7,6 +7,7 @@ describe('resolveDeviceQueries', () => {
     it('matches some iPhones', () => {
         const actual = resolveDeviceQueries(['iphone']).map(dd => dd.label)
         const expected: Array<keyof typeof devices> = [
+            'iPhone SE (3rd gen)',
             'iPhone 6',
             'iPhone 6 Plus',
             'iPhone 7',
