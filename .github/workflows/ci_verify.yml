@@ -16,6 +16,7 @@ jobs:
           node-version: 23
           cache: pnpm
       - run: pnpm i
+      - run: npx playwright install webkit --with-deps
       - run: pnpm -r build
       - run: ./create-test-reports.sh
         working-directory: webapp
