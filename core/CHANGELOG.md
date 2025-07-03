@@ -4,19 +4,20 @@
 
 ### Added
 
-- `resolveDevices` added to package exports and `DeviceDefinition`
-  includes a `BrowserEngine` field for the device's native browser
+- `resolveDevices` export returns device definitions resolved
+  from a `CaptureScreenshotsOptions`
+- `DeviceDefinition` includes a `BrowserEngine` field for the
+  device's native browser
 - `checkPlaywrightBrowserDistributions` checks if Playwright browser
   distributions are installed
-- `lib/api.web.ts` exported for web bundling package consumers
-- `CaptureWebSocket` serves webapp index.html with bootstrap metadata
+- `lib/api.web.ts` export entrypoint for web bundling package consumers
 
 ### Fixed
 
-- `captureScreenshots` takes emulated device screenshots with the
-  browser engine native to that device
-- `getSupportedDeviceLabels` filters out landscape from Playwright
-  device configurations
+- `captureScreenshots` uses an emulated device's native browser engine
+  for screenshot capture
+- `getSupportedDeviceLabels` filters out duplicate output from
+  device configurations that support portrait and landscape modes
 
 ## [v0.0.5] - 2025-06-12
 
