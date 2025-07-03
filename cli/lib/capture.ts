@@ -147,6 +147,8 @@ function progress(update: CaptureProgress) {
             const parsingOutput = `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages completed`
             if (update.pages.completed === 0) {
                 console.log(parsingOutput)
+            } else if (update.pages.completed === update.pages.total) {
+                ansi.rewriteLines(1, `${parsingOutput} \u001b[32m✔\u001b[0m`)
             } else {
                 ansi.rewriteLines(1, parsingOutput)
             }
@@ -155,12 +157,16 @@ function progress(update: CaptureProgress) {
             const capturingOutput = `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`
             if (update.screenshots.completed === 0) {
                 console.log(capturingOutput)
+            } else if (
+                update.screenshots.completed === update.screenshots.total
+            ) {
+                ansi.rewriteLines(1, `${capturingOutput} \u001b[32m✔\u001b[0m`)
             } else {
                 ansi.rewriteLines(1, capturingOutput)
             }
             break
         case 'completed':
-            console.log('Capturing screenshots completed!')
+            console.log('Plundering is complete!')
     }
 }
 
