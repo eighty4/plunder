@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- ???
+
+## [v0.0.6] - 2025-07-03
+
 ### Added
 
 - `resolveDevices` export returns device definitions resolved
@@ -45,7 +49,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.5...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/core-v0.0.6...HEAD
+[v0.0.6]: https://github.com/eighty4/plunder/compare/core-v0.0.5...core-v0.0.6
 [v0.0.5]: https://github.com/eighty4/plunder/compare/core-v0.0.4...core-v0.0.5
 [v0.0.4]: https://github.com/eighty4/plunder/compare/core-v0.0.3...core-v0.0.4
 [v0.0.3]: https://github.com/eighty4/plunder/compare/core-v0.0.2...core-v0.0.3

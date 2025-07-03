@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- ???
+
+## [v0.0.7] - 2025-07-03
+
 ### Added
 
 - Screenshot capture and link checking will prompt user before starting
@@ -41,7 +45,8 @@
 
 - capture screenshots of webpages at CSS media query page widths
 
-[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.6...HEAD
+[Unreleased]: https://github.com/eighty4/plunder/compare/cli-v0.0.7...HEAD
+[v0.0.7]: https://github.com/eighty4/plunder/compare/cli-v0.0.6...cli-v0.0.7
 [v0.0.6]: https://github.com/eighty4/plunder/compare/cli-v0.0.5...cli-v0.0.6
 [v0.0.5]: https://github.com/eighty4/plunder/compare/cli-v0.0.4...cli-v0.0.5
 [v0.0.4]: https://github.com/eighty4/plunder/compare/cli-v0.0.3...cli-v0.0.4
