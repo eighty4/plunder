@@ -84,14 +84,21 @@ plunder links https://alistapart.com
 
 ## Contributing
 
-pnpm and Node 23 are required for development.
+pnpm and Node >23 are required for development.
 
-Plunder embraces Node's experimental type stripping support and Node will emit
-warnings about TypeScript when running unit tests.
+Plunder embraces Node's TypeScript support and uses TypeScript without
+compiling for development workflows. Node 23 will emit warnings about
+experimental type stripping support. Upgrading to Node 24 will help.
 
-Until Node finalizes type stripping support, CLI users will receive warnings
-from Node if their `--capture-hook` script is a TypeScript file. Hopefully the
-next LTS release of Node will remove the warnings!
+### Upgrading to Node 24 with `nvm`
+
+```
+nvm install 24
+nvm use 24
+npm i -g pnpm
+```
+
+[Or get Node.js from the source](https://nodejs.org/en/download/current).
 
 ### Build and run CLI
 
