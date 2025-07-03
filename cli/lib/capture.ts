@@ -22,6 +22,16 @@ import {
 } from './browser.ts'
 import { errorPrint } from './error.ts'
 
+export function isDevUI(): boolean {
+    switch (process.env.PLUNDER_DEV_UI) {
+        case '1':
+        case 'true':
+            return true
+        default:
+            return false
+    }
+}
+
 export async function activeScreenshotCapture(
     installConfirmed: boolean,
     headless: boolean,

@@ -5,12 +5,13 @@ import ansi from './ansi.ts'
 import {
     activeScreenshotCapture,
     captureScreenshotsCommand,
+    isDevUI,
 } from './capture.ts'
 import { devicesPrintCommand } from './devices.ts'
 import { errorPrint } from './error.ts'
 import { linkCheckingCommand } from './links.ts'
 
-const knownOpts = {
+const knownOpts: Record<string, any> = {
     all: Boolean,
     ['capture-hook']: String,
     ['confirm-install']: Boolean,
@@ -26,7 +27,11 @@ const knownOpts = {
     ui: Boolean,
 }
 
-const shortHands = {
+if (!isDevUI()) {
+    delete knownOpts['ui']
+}
+
+const shortHands: Record<string, Array<string>> = {
     a: ['--all'],
     b: ['--browser'],
     d: ['--device'],
@@ -92,7 +97,7 @@ if (parsed.help) {
         },
         isSkipConfirmInstall(),
     )
-} else if (parsed['ui'] === true) {
+} else if (isDevUI() && parsed['ui'] === true) {
     await activeScreenshotCapture(
         isSkipConfirmInstall(),
         parsed['not-headless'] !== true,
@@ -139,11 +144,15 @@ ${sectionHeader('Read extensive docs with:')}
     // capture -h content
     if (mode === 'capture') {
         console.log(`${sectionHeader('Capturing screenshots:')}
+${
+    !isDevUI()
+        ? ''
+        : `
+Use a webapp UI to command screenshot capturing.
 
- Use a webapp UI to command screenshot capturing.
-
-    ${ansi.bold('plunder')} --ui
-
+   ${ansi.bold('plunder')} --ui
+`
+}
  Plunder CSS and capture screenshots around media query breakpoints.
 
     ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--css-breakpoints')} URL...
