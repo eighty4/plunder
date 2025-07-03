@@ -168,7 +168,7 @@ ${sectionHeader('Read extensive docs with:')}
     ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
 
     CaptureScreenshotsOptions has very detailed docs:
-        https://github.com/eighty4/plunder/blob/main/core/src/capture.ts
+        https://github.com/eighty4/plunder/blob/main/core/lib/captureScreenshots.ts#L20
 
 Read about all commands with '${ansi.bold('plunder --help')}'.`)
     }
