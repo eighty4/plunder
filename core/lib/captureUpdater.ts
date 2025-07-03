@@ -1,7 +1,7 @@
 import type { CaptureProgress, CaptureProgressStep } from './captureProgress.js'
 
 export class CaptureProgressUpdater {
-    #step: CaptureProgressStep = 'parsing'
+    #step: CaptureProgressStep = 'starting'
     readonly #pages: { total: number; completed: number } = {
         total: 0,
         completed: 0,
@@ -16,23 +16,19 @@ export class CaptureProgressUpdater {
         this.#updater = updater
     }
 
-    addToParsePageTotal(n: number) {
+    markStarting() {
+        this.#sendUpdate()
+    }
+
+    markPageParsingStarting(n: number) {
+        this.#step = 'parsing'
         this.#pages.total += n
         this.#sendUpdate()
     }
 
-    addToParsePageCompleted(n: number) {
-        this.#pages.completed += n
-        this.#sendUpdate()
-    }
-
-    addToScreenshotsTotal(n: number) {
+    markScreenshotCaptureStarting(n: number) {
+        this.#step = 'capturing'
         this.#screenshots.total += n
-        this.#sendUpdate()
-    }
-
-    addToScreenshotsCompleted(n: number) {
-        this.#screenshots.completed += n
         this.#sendUpdate()
     }
 
@@ -41,14 +37,15 @@ export class CaptureProgressUpdater {
         this.#sendUpdate()
     }
 
-    markPageParsed = () => this.addToParsePageCompleted(1)
-
-    markPageParsingCompleted() {
-        this.#step = 'capturing'
+    markPageParsed() {
+        this.#pages.completed += 1
         this.#sendUpdate()
     }
 
-    markScreenshotCompleted = () => this.addToScreenshotsCompleted(1)
+    markScreenshotCaptured() {
+        this.#screenshots.completed += 1
+        this.#sendUpdate()
+    }
 
     #sendUpdate() {
         this.#updater(this.#createUpdate())
@@ -56,6 +53,10 @@ export class CaptureProgressUpdater {
 
     #createUpdate(): CaptureProgress {
         switch (this.#step) {
+            case 'starting':
+                return {
+                    step: 'starting',
+                }
             case 'capturing':
                 return {
                     step: 'capturing',

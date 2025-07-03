@@ -187,6 +187,7 @@ export async function captureScreenshots(
         ? await resolveCaptureHook(opts.captureHook)
         : null
     const updater = new CaptureProgressUpdater(opts.progress)
+    updater.markStarting()
     const browsers = new BrowserManager()
     try {
         const result = await Promise.all(
@@ -236,7 +237,6 @@ async function resolveUrlsAndMediaQueries(
         for (const { url, mediaQueries } of parsedPages) {
             result[url] = mediaQueries
         }
-        updater.markPageParsingCompleted()
     } else {
         opts.urls.forEach(url => (result[url] = null))
     }
@@ -258,7 +258,9 @@ async function captureScreenshotsForPage(
         mediaQueries,
         opts,
     )
-    updater.addToScreenshotsTotal(Object.keys(manifest.screenshots).length)
+    updater.markScreenshotCaptureStarting(
+        Object.keys(manifest.screenshots).length,
+    )
     const takingScreenshots = Object.entries(manifest.screenshots).map(
         async ([file, { browser, pageSpec }]) => {
             const page = await browsers.newPage(
@@ -267,7 +269,7 @@ async function captureScreenshotsForPage(
                 pageSpec,
             )
             await screenshot(page, outDir.webpageOutDir, url, captureHook, file)
-            updater.markScreenshotCompleted()
+            updater.markScreenshotCaptured()
         },
     )
     await Promise.all(takingScreenshots)

@@ -54,7 +54,6 @@ export async function captureScreenshotsCommand(
                 opts.deviceQueries,
             )
         }
-        console.log('Get ready to plunder!')
         const result = await captureScreenshots({ ...opts, progress })
         await writeWebappReport(opts.outDir, result)
         process.exit(0)
@@ -141,17 +140,24 @@ async function validateCaptureOpts(
 
 function progress(update: CaptureProgress) {
     switch (update.step) {
+        case 'starting':
+            console.log('Get ready to plunder!')
+            break
         case 'parsing':
-            ansi.rewriteLines(
-                1,
-                `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages parsed`,
-            )
+            const parsingOutput = `Parsing CSS: ${update.pages.completed} / ${update.pages.total} pages completed`
+            if (update.pages.completed === 0) {
+                console.log(parsingOutput)
+            } else {
+                ansi.rewriteLines(1, parsingOutput)
+            }
             break
         case 'capturing':
-            ansi.rewriteLines(
-                1,
-                `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`,
-            )
+            const capturingOutput = `Capturing screenshots: ${update.screenshots.completed} / ${update.screenshots.total} screenshots captured`
+            if (update.screenshots.completed === 0) {
+                console.log(capturingOutput)
+            } else {
+                ansi.rewriteLines(1, capturingOutput)
+            }
             break
         case 'completed':
             console.log('Capturing screenshots completed!')

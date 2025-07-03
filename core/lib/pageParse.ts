@@ -43,7 +43,7 @@ export async function parsePagesForCapture(
     const parsedPages: Array<ParsePageResult> = []
 
     function initParsingPages(urls: Array<string>) {
-        updater.addToParsePageTotal(urls.length)
+        updater.markPageParsingStarting(urls.length)
         for (const url of urls) {
             if (typeof parsingPages[url] === 'undefined') {
                 parsingPages[url] = browsers
