@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
-- ???
+### Added
+
+- Screenshot capture will start an HTTP server to view web report from
+  `--out-dir` at port 7979 or configured with `--booty-port`
 
 ## [v0.0.7] - 2025-07-03
 

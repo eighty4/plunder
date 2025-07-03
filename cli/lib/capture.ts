@@ -1,3 +1,9 @@
+import { createReadStream, createWriteStream } from 'node:fs'
+import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
+import { createServer as createHttpServer } from 'node:http'
+import { join as joinPath, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import {
     CaptureHookError,
     CaptureHookImportError,
@@ -9,11 +15,6 @@ import {
     launchCaptureWebSocket,
     UnspecifiedCaptureSourceError,
 } from '@eighty4/plunder-core'
-import { createReadStream, createWriteStream } from 'node:fs'
-import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { join } from 'node:path'
 import { z } from 'zod'
 import ansi from './ansi.ts'
 import {
@@ -49,9 +50,14 @@ export async function activeScreenshotCapture(
     return new Promise(() => {})
 }
 
+export type CaptureScreenshotsCommandOptions = {
+    installConfirmed: boolean
+    bootyPort: false | number
+}
+
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
-    installConfirmed: boolean,
+    { bootyPort, installConfirmed }: CaptureScreenshotsCommandOptions,
 ): Promise<never> {
     await validateCaptureOpts(opts)
 
@@ -66,6 +72,14 @@ export async function captureScreenshotsCommand(
         }
         const result = await captureScreenshots({ ...opts, progress })
         await writeWebappReport(opts.outDir, result)
+        if (bootyPort === false) {
+            console.log(
+                'See your QA booty at',
+                ansi.green(joinPath(opts.outDir, 'index.html')),
+            )
+        } else if (process.stdin.isTTY) {
+            await serveWebappReport(bootyPort, opts.outDir)
+        }
         process.exit(0)
     } catch (e: any) {
         const pad = '        '
@@ -212,6 +226,47 @@ async function writeWebappReport(
     } catch (e: any) {
         throw new WebappReportError(e)
     }
+}
+
+async function serveWebappReport(port: number, outDir: string): Promise<void> {
+    const server = createHttpServer((req, res) => {
+        if (req.method !== 'GET') {
+            res.writeHead(405)
+            res.end()
+        } else if (req.url === '/') {
+            const p = joinPath(outDir, 'index.html')
+            const reading = createReadStream(p)
+            res.setHeader('Content-Type', 'text/html')
+            reading.pipe(res)
+            reading.on('error', err => {
+                console.error(
+                    `GET ${req.url} file read ${p} error ${err.message}`,
+                )
+                res.statusCode = 500
+                res.end()
+            })
+        } else {
+            const p = joinPath(outDir, req.url!)
+            const reading = createReadStream(p)
+            res.setHeader('Content-Type', 'image/png')
+            reading.pipe(res)
+            reading.on('error', err => {
+                console.error(
+                    `GET ${req.url} file read ${p} error ${err.message}`,
+                )
+                res.statusCode = 500
+                res.end()
+            })
+        }
+    })
+    return new Promise((res, rej) => {
+        server.listen(port, () => {
+            const url = 'http://localhost:' + port
+            console.log(`\nSee your QA booty at ${ansi.green(url)}`)
+        })
+        server.once('close', res)
+        server.once('error', rej)
+    })
 }
 
 async function streamCopy(from: string, to: string): Promise<void> {
