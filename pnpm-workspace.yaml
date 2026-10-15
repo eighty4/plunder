@@ -2,3 +2,6 @@ packages:
   - cli
   - core
   - webapp
+
+allowBuilds:
+  esbuild: true
