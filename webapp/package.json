@@ -12,7 +12,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "pnpm test:e2e",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:prep": "./create-test-reports.sh"
   },
   "dependencies": {
     "@eighty4/plunder-core": "workspace:^",

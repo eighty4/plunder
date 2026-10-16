@@ -1,21 +1,26 @@
 #!/bin/bash
 set -e
 
-rm -rf .playwright/plunder
+_root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 
-pushd ..
+echo "WTF $_root_dir WTF"
+rm -rf "$_root_dir/webapp/.playwright/plunder"
+
+pushd "$_root_dir" > /dev/null
     pnpm --filter \!@eighty4/plunder-webapp build
 popd
 
-node ../cli/lib_js/plunder.js \
+node "$_root_dir/cli/lib_js/plunder.js" \
+    --no-booty-port \
     --confirm-install \
     --css-breakpoints \
-    -o .playwright/plunder/single-page \
+    -o "$_root_dir/webapp/.playwright/plunder/single-page" \
     https://alistapart.com
 
-node ../cli/lib_js/plunder.js \
+node "$_root_dir/cli/lib_js/plunder.js" \
+    --no-booty-port \
     --confirm-install \
     -d "iphone 15 pro max" \
-    -o .playwright/plunder/multiple-pages \
+    -o "$_root_dir/webapp/.playwright/plunder/multiple-pages" \
     https://alistapart.com \
     https://github.com/eighty4
