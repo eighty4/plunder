@@ -1,4 +1,4 @@
-import { defineConfig, devices, type TestOptions } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test'
 
 type PlunderWebServer = {
     env: Record<string, string>
@@ -9,7 +9,7 @@ type PlunderWebServer = {
 const modes: Array<PlunderWebServer> = [
     {
         env: {
-            PLUNDER_WS_PORT: 7090,
+            PLUNDER_WS_PORT: '7090',
         },
         mode: 'active',
         port: 7009,
@@ -30,19 +30,21 @@ const modes: Array<PlunderWebServer> = [
     },
 ]
 
-export function activeApiConfig(): TestOptions {
+export type PlunderTestParams = { baseURL: string }
+
+export function activeApiConfig(): PlunderTestParams {
     return {
         baseURL: 'http://localhost:' + modes[0].port,
     }
 }
 
-export function singlePageConfig(): TestOptions {
+export function singlePageConfig(): PlunderTestParams {
     return {
         baseURL: 'http://localhost:' + modes[1].port,
     }
 }
 
-export function multiPageConfig(): TestOptions {
+export function multiPageConfig(): PlunderTestParams {
     return {
         baseURL: 'http://localhost:' + modes[2].port,
     }
@@ -70,9 +72,9 @@ export default defineConfig({
         env: {
             ...env,
             PLUNDER_MODE: mode,
-            VITE_PORT: port,
+            VITE_PORT: `${port}`,
         },
-        url: 'http://localhost:' + port,
+        url: `http://localhost:${port}`,
         reuseExistingServer: false,
         stdout: 'pipe',
         stderr: 'pipe',
