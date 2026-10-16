@@ -24,14 +24,14 @@
   },
   "dependencies": {
     "@eighty4/plunder-core": "workspace:^",
-    "nopt": "^8.1.0",
-    "zod": "^3.25.71"
+    "nopt": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@eighty4/plunder-webapp": "workspace:^",
-    "@types/node": "^24.0.10",
-    "@types/nopt": "^3.0.32",
-    "typescript": "^5.8.3"
+    "@types/node": "catalog:",
+    "@types/nopt": "catalog:",
+    "typescript": "catalog:"
   },
   "files": [
     "lib/**/*.ts",
