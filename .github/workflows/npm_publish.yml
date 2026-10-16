@@ -20,6 +20,9 @@ on:
 
 concurrency: publish
 
+env:
+  NODE_VERSION: 24
+
 jobs:
   build-params:
     runs-on: ubuntu-latest
@@ -28,10 +31,10 @@ jobs:
       gh-prerelease: ${{ inputs.semver-bump == 'prerelease' && 'true' || 'false' }}
       npm-tag: ${{ inputs.semver-bump == 'prerelease' && 'next' || 'latest' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 23
+          node-version: ${{ env.NODE_VERSION }}
       - name: cli changelog entries
         if: ${{ inputs.semver-bump != 'prerelease' }}
         run: npx --yes @eighty4/changelog check
@@ -55,10 +58,10 @@ jobs:
       core-tag: ${{ steps.core.outputs.tag }}
       core-version: ${{ steps.core.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 23
+          node-version: ${{ env.NODE_VERSION }}
       - run: npm i -g @eighty4/changelog
       - if: inputs.dry-run
         run: git checkout -b "publish-dry-run-${{ github.run_number }}"
@@ -104,16 +107,14 @@ jobs:
     env:
       NPM_TAG: ${{ needs.build-params.outputs.npm-tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-tags: true
           ref: ${{ needs.git-tags.outputs.cli-tag }}
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
         with:
-          node-version: 23
-          registry-url: https://registry.npmjs.org
-      - run: pnpm i
+          runtime: node@${{ env.NODE_VERSION }}
+      - run: pnpm config set registry https://registry.npmjs.org
       - run: pnpm -r build
       - name: publish
         if: ${{ !inputs.dry-run }}
@@ -188,7 +189,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: git push --delete origin ${{ needs.git-tags.outputs.cli-tag }}
       - run: git push --delete origin ${{ needs.git-tags.outputs.core-tag }}
       - run: git push --delete origin "publish-dry-run-${{ github.run_number }}"

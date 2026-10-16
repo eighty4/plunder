@@ -20,19 +20,22 @@ on:
       notes:
         value: ${{ jobs.create.outputs.notes }}
 
+env:
+  NODE_VERSION: 24
+
 jobs:
   create:
     runs-on: ubuntu-latest
     outputs:
       notes: ${{ steps.notes.outputs.notes }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-tags: true
           ref: ${{ inputs.git_tag }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 23
+          node-version: ${{ env.NODE_VERSION }}
       - run: npm i -g @eighty4/changelog
       - id: notes
         env:
