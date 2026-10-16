@@ -252,7 +252,7 @@ async function serveWebappReport(port: number, outDir: string): Promise<void> {
             reading.pipe(res)
             reading.on('error', err => {
                 console.error(
-                    `GET ${req.url} file read ${p} error ${err.message}`,
+                    `${ansi.red(ansi.bold('http error:'))} GET ${req.url} (${err.message})`,
                 )
                 res.statusCode = 500
                 res.end()
