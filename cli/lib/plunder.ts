@@ -91,7 +91,7 @@ function bootyPort(): false | number {
 }
 
 function isSkipConfirmInstall(): boolean {
-    return parsed['confirm-install'] === true
+    return parsed['confirm-install'] !== true
 }
 
 if (parsed.help) {
@@ -180,16 +180,16 @@ Use a webapp UI to command screenshot capturing.
     ${ansi.bold('plunder')} [OPTIONS] ${ansi.bold('--device iPhone')} URL...
 
  ${ansi.bold('Options:')}
-    ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>    Browser engine used when not specified by device emulation
-                               [values: chromium (default) | firefox | webkit]
-        ${ansi.bold('--[no]-booty-port')}      Port to open HTTP server for web report [default: 7979]
-        ${ansi.bold('--capture-hook')}         Path to a script ran before each screenshot capture
-        ${ansi.bold('--confirm-install')}      Confirm Playwright browser installs
-        ${ansi.bold('--css-breakpoints')}      Parse CSS and capture screenshots on media query breakpoints
-    ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>      Device name patterns to use for screenshot capturing
-        ${ansi.bold('--modern-devices')}       Emulate modern devices for screenshot capture
-        ${ansi.bold('--not-headless')}         Launch browser as a GUI application
-    ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>    Output directory for screenshot capture [required]
+    ${ansi.bold('-b')}, ${ansi.bold('--browser')} <BROWSER>      Browser engine used when not specified by device emulation
+                                 [values: chromium (default) | firefox | webkit]
+        ${ansi.bold('--[no-]booty-port')}        Port to open HTTP server for web report [default: 7979]
+        ${ansi.bold('--capture-hook')}           Path to a script ran before each screenshot capture
+        ${ansi.bold('--[no-]confirm-install')}   Confirm Playwright browser installs
+        ${ansi.bold('--css-breakpoints')}        Parse CSS and capture screenshots on media query breakpoints
+    ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>        Device name patterns to use for screenshot capturing
+        ${ansi.bold('--modern-devices')}         Emulate modern devices for screenshot capture
+        ${ansi.bold('--not-headless')}           Launch browser as a GUI application
+    ${ansi.bold('-o')}, ${ansi.bold('--out-dir')} <OUT_DIR>      Output directory for screenshot capture [required]
 
     CaptureScreenshotsOptions has very detailed docs:
         https://github.com/eighty4/plunder/blob/main/core/lib/captureScreenshots.ts#L20
