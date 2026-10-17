@@ -10,7 +10,6 @@ pushd "$_root_dir" > /dev/null
 popd
 
 node "$_root_dir/cli/lib_js/plunder.js" \
-    -b chromium \
     --no-booty-port \
     --no-confirm-install \
     -d "iphone 15 pro max" \
@@ -18,7 +17,6 @@ node "$_root_dir/cli/lib_js/plunder.js" \
     https://alistapart.com
 
 node "$_root_dir/cli/lib_js/plunder.js" \
-    -b chromium \
     --no-booty-port \
     --no-confirm-install \
     -d "iphone 15 pro max" \

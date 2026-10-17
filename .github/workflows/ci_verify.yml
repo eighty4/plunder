@@ -17,7 +17,12 @@ jobs:
       - uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
         with:
           runtime: node@${{ env.NODE_VERSION }}
-      - run: pnpm exec -F ./webapp playwright install chromium-headless-shell --with-deps
+      - name: playwright install for e2e tests
+        run: pnpm exec playwright install chromium --only-shell --with-deps
+        working-directory: webapp
+      - name: playwright install for plunder cli
+        run: pnpm exec playwright install webkit --with-deps
+        working-directory: core
       - run: pnpm -r build
       - run: ./webapp/create-test-reports.sh
       - run: pnpm -r test
