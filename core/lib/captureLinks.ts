@@ -1,8 +1,8 @@
 import { writeFile } from 'node:fs/promises'
 import type { Page } from 'playwright-core'
 import { ZodError, z } from 'zod'
-import { installMissingBrowserDistributions } from './playwrightInstall.ts'
-import { BrowserManager } from './playwrightProcess.ts'
+import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { BrowserManager } from './playwright/playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
 
 export interface CheckHrefsOptions {

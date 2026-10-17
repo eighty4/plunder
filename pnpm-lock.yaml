@@ -165,8 +165,8 @@ settings:
 catalogs:
   default:
     '@playwright/test':
-      specifier: ^1.53.2
-      version: 1.53.2
+      specifier: ^1.64.1
+      version: 1.64.1
     '@types/node':
       specifier: ^24.0.10
       version: 24.0.10
@@ -195,11 +195,11 @@ catalogs:
       specifier: ^8.1.0
       version: 8.1.0
     playwright:
-      specifier: ^1.53.2
-      version: 1.53.2
+      specifier: ^1.64.1
+      version: 1.64.1
     playwright-core:
-      specifier: ^1.53.2
-      version: 1.53.2
+      specifier: ^1.64.1
+      version: 1.64.1
     react:
       specifier: ^19.1.0
       version: 19.1.0
@@ -265,10 +265,10 @@ importers:
         version: 1.30.1
       playwright:
         specifier: 'catalog:'
-        version: 1.53.2
+        version: 1.64.1
       playwright-core:
         specifier: 'catalog:'
-        version: 1.53.2
+        version: 1.64.1
       ws:
         specifier: 'catalog:'
         version: 8.18.3
@@ -303,7 +303,7 @@ importers:
     devDependencies:
       '@playwright/test':
         specifier: 'catalog:'
-        version: 1.53.2
+        version: 1.64.1
       '@types/react':
         specifier: 'catalog:'
         version: 19.1.8
@@ -578,9 +578,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
 
-  '@playwright/test@1.53.2':
-    resolution: {integrity: sha512-tEB2U5z74ebBeyfGNZ3Jfg29AnW+5HlWhvHtb/Mqco9pFdZU1ZLNdVb2UtB5CvmiilNr2ZfVH/qMmAROG/XTzw==}
-    engines: {node: '>=18'}
+  '@playwright/test@1.64.1':
+    resolution: {integrity: sha512-IaYGml/nSOiZWROfPtuIL7neuu9qDOZ3TNvNljUIrhDMxiGTgPjzj/g9p9RxpS2tSepPDRY+UwAaEeiKtUvIAg==}
+    engines: {node: '>=20'}
     hasBin: true
 
   '@rolldown/pluginutils@1.0.0-beta.19':
@@ -794,11 +794,6 @@ packages:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
 
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -931,14 +926,14 @@ packages:
     resolution: {integrity: sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==}
     engines: {node: '>=12'}
 
-  playwright-core@1.53.2:
-    resolution: {integrity: sha512-ox/OytMy+2w1jcYEYlOo1Hhp8hZkLCximMTUTMBXjGUA1KoFfiSZ+DU+3a739jsPY0yoKH2TFy9S2fsJas8yAw==}
-    engines: {node: '>=18'}
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
     hasBin: true
 
-  playwright@1.53.2:
-    resolution: {integrity: sha512-6K/qQxVFuVQhRQhFsVZ9fGeatxirtrpPgxzBYWyZLEXJzqYwuL4fuNmfOfD5et1tJE4GScKyPNeLhZeRwuTU3A==}
-    engines: {node: '>=18'}
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
+    engines: {node: '>=20'}
     hasBin: true
 
   postcss@8.5.6:
@@ -1280,9 +1275,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
 
-  '@playwright/test@1.53.2':
+  '@playwright/test@1.64.1':
     dependencies:
-      playwright: 1.53.2
+      playwright: 1.64.1
 
   '@rolldown/pluginutils@1.0.0-beta.19': {}
 
@@ -1464,9 +1459,6 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
 
-  fsevents@2.3.2:
-    optional: true
-
   fsevents@2.3.3:
     optional: true
 
@@ -1552,13 +1544,11 @@ snapshots:
 
   picomatch@4.0.2: {}
 
-  playwright-core@1.53.2: {}
+  playwright-core@1.64.1: {}
 
-  playwright@1.53.2:
+  playwright@1.64.1:
     dependencies:
-      playwright-core: 1.53.2
-    optionalDependencies:
-      fsevents: 2.3.2
+      playwright-core: 1.64.1
 
   postcss@8.5.6:
     dependencies:

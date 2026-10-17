@@ -23,11 +23,8 @@ export {
     getSupportedDeviceLabels,
     resolveDevices,
 } from './devices.ts'
-export {
-    BrowserEngineValues,
-    type BrowserEngine,
-} from './playwrightBrowsers.ts'
+export { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
 export {
     checkPlaywrightBrowserDistributions,
     type PlaywrightBrowserDistributions,
-} from './playwrightInstall.ts'
+} from './playwright/playwrightInstall.ts'

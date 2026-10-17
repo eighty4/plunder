@@ -4,7 +4,7 @@ import type { CaptureProgressUpdater } from './captureUpdater.js'
 import { findAllCss } from './cssFind.ts'
 import { type CssMediaQuery, parseCssForMediaQueries } from './cssParse.ts'
 import { findAllSameOriginAnchorHrefs } from './domParse.ts'
-import type { BrowserManager } from './playwrightProcess.ts'
+import type { BrowserManager } from './playwright/playwrightProcess.ts'
 import { getBaseHref } from './url.ts'
 
 export interface ParsePageResult {

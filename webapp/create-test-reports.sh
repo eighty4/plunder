@@ -3,7 +3,6 @@ set -e
 
 _root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 
-echo "WTF $_root_dir WTF"
 rm -rf "$_root_dir/webapp/.playwright/plunder"
 
 pushd "$_root_dir" > /dev/null
@@ -14,7 +13,7 @@ node "$_root_dir/cli/lib_js/plunder.js" \
     -b chromium \
     --no-booty-port \
     --no-confirm-install \
-    --css-breakpoints \
+    -d "iphone 15 pro max" \
     -o "$_root_dir/webapp/.playwright/plunder/single-page" \
     https://alistapart.com
 

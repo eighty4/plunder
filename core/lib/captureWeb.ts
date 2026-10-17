@@ -10,8 +10,8 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
 import { parsePageForBreakpoints } from './pageParse.ts'
-import { installMissingBrowserDistributions } from './playwrightInstall.ts'
-import { BrowserManager } from './playwrightProcess.ts'
+import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { BrowserManager } from './playwright/playwrightProcess.ts'
 
 export type OpenPageReq = {
     type: 'open-page'

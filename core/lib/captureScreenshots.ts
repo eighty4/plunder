@@ -10,12 +10,9 @@ import { type CssMediaQuery } from './cssParse.ts'
 import { resolveDevices } from './devices.ts'
 import { makeOutDirForPageUrl } from './fileSystem.ts'
 import { parsePagesForCapture } from './pageParse.ts'
-import {
-    type BrowserEngine,
-    BrowserEngineValues,
-} from './playwrightBrowsers.ts'
-import { installMissingBrowserDistributions } from './playwrightInstall.ts'
-import { BrowserManager } from './playwrightProcess.ts'
+import { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
+import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { BrowserManager } from './playwright/playwrightProcess.ts'
 
 export interface CaptureScreenshotsOptions {
     /**

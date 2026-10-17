@@ -1,5 +1,5 @@
 import type { Browser, BrowserType, Page } from 'playwright'
-import type { BrowserEngine, BrowserOptions } from './playwrightBrowsers.ts'
+import type { BrowserEngine, BrowserOptions } from '../plunderBrowsers.ts'
 
 type BrowserLookup<T> = Record<
     BrowserEngine,

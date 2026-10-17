@@ -6,10 +6,7 @@ import {
 } from './cssParse.ts'
 import { type CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import { type DeviceDefinition, resolveDevices } from './devices.ts'
-import {
-    type BrowserEngine,
-    type BrowserOptions,
-} from './playwrightBrowsers.ts'
+import { type BrowserEngine, type BrowserOptions } from './plunderBrowsers.ts'
 
 // representation of json written to capture out dir for each
 // captured webpage types are exported from lib and used by webapp

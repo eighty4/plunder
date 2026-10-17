@@ -9,7 +9,4 @@ export {
     getDeviceLabelSearchMatches,
     getSupportedDeviceLabels,
 } from './devices.ts'
-export {
-    BrowserEngineValues,
-    type BrowserEngine,
-} from './playwrightBrowsers.ts'
+export { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
