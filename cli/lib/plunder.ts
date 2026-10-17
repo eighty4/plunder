@@ -90,8 +90,8 @@ function bootyPort(): false | number {
     }
 }
 
-function isSkipConfirmInstall(): boolean {
-    return parsed['confirm-install'] !== true
+function mustPromptConfirmInstall(): boolean {
+    return parsed['confirm-install'] === true
 }
 
 if (parsed.help) {
@@ -106,11 +106,11 @@ if (parsed.help) {
             outputFile: parsed['out'] || parsed['out-file'],
             urls: parsed.argv.remain.filter(remain => remain !== 'links'),
         },
-        isSkipConfirmInstall(),
+        mustPromptConfirmInstall(),
     )
 } else if (isDevUI() && parsed['ui'] === true) {
     await activeScreenshotCapture(
-        isSkipConfirmInstall(),
+        mustPromptConfirmInstall(),
         parsed['not-headless'] !== true,
     )
 } else {
@@ -127,7 +127,7 @@ if (parsed.help) {
             urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
         },
         {
-            installConfirmed: isSkipConfirmInstall(),
+            promptConfirmInstall: mustPromptConfirmInstall(),
             bootyPort: bootyPort(),
         },
     )
@@ -184,7 +184,7 @@ Use a webapp UI to command screenshot capturing.
                                  [values: chromium (default) | firefox | webkit]
         ${ansi.bold('--[no-]booty-port')}        Port to open HTTP server for web report [default: 7979]
         ${ansi.bold('--capture-hook')}           Path to a script ran before each screenshot capture
-        ${ansi.bold('--[no-]confirm-install')}   Confirm Playwright browser installs
+        ${ansi.bold('--no-confirm-install')}     Skip confirming Playwright browser installs
         ${ansi.bold('--css-breakpoints')}        Parse CSS and capture screenshots on media query breakpoints
     ${ansi.bold('-d')}, ${ansi.bold('--device')} <DEVICE>        Device name patterns to use for screenshot capturing
         ${ansi.bold('--modern-devices')}         Emulate modern devices for screenshot capture

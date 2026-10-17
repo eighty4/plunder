@@ -34,10 +34,10 @@ export function isDevUI(): boolean {
 }
 
 export async function activeScreenshotCapture(
-    installConfirmed: boolean,
+    promptConfirmInstall: boolean,
     headless: boolean,
 ): Promise<void> {
-    if (!installConfirmed) {
+    if (promptConfirmInstall) {
         await confirmBrowserInstalls(
             new Set(['chromium', 'firefox', 'webkit']),
             headless,
@@ -51,18 +51,18 @@ export async function activeScreenshotCapture(
 }
 
 export type CaptureScreenshotsCommandOptions = {
-    installConfirmed: boolean
+    promptConfirmInstall: boolean
     bootyPort: false | number
 }
 
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
-    { bootyPort, installConfirmed }: CaptureScreenshotsCommandOptions,
+    { bootyPort, promptConfirmInstall }: CaptureScreenshotsCommandOptions,
 ): Promise<never> {
     await validateCaptureOpts(opts)
 
     try {
-        if (!installConfirmed) {
+        if (promptConfirmInstall) {
             await confirmCaptureBrowserInstalls(
                 opts.browser,
                 opts.headless,

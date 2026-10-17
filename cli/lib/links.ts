@@ -10,11 +10,11 @@ import { errorPrint } from './error.ts'
 
 export async function linkCheckingCommand(
     opts: CheckHrefsOptions,
-    installConfirmed: boolean,
+    promptConfirmInstall: boolean,
 ): Promise<never> {
     console.log('Plundering anchor tags for broken links')
     try {
-        if (!installConfirmed) {
+        if (promptConfirmInstall) {
             await confirmBrowserInstalls(new Set(['chromium']), true)
         }
         const result = await checkAnchorHrefs(opts)
