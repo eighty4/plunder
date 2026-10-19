@@ -14,7 +14,7 @@ export async function getBaseHref(page: Page): Promise<string | null> {
     if (/^https?:\/\//.test(trimmed)) {
         return trimmed
     } else if (!trimmed.startsWith('/')) {
-        throw new Error(
+        throw Error(
             'not sure how a <base href=""/> without a leading slash is used by browsers',
         )
     } else {

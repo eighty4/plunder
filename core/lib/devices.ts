@@ -96,7 +96,7 @@ export function resolveDeviceQueries(
     } else if (Array.isArray(query)) {
         return searchDeviceDefinitions(query)
     } else {
-        throw new Error('bad argument')
+        throw Error('bad argument')
     }
 }
 

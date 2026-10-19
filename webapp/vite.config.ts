@@ -17,7 +17,7 @@ function parsePort(env: string): number | undefined {
     if (process.env[env]) {
         const port = parseInt(process.env[env], 10)
         if (isNaN(port)) {
-            throw new Error(`${env}=${process.env[env]} is not a valid port`)
+            throw Error(`${env}=${process.env[env]} is not a valid port`)
         }
         return port
     }
@@ -183,7 +183,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
                         },
                     }
                 default:
-                    throw new Error()
+                    throw Error()
             }
     }
 })

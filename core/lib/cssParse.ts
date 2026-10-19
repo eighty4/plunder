@@ -55,7 +55,7 @@ export function parseCssForMediaQueries(
                 return collectApplicableMediaQueries(filename, buffer)
             } catch (e: any) {
                 // todo capture css errors to write to plunder.json
-                // throw new Error(`lightningcss error processing from webpage '${foundCss.url}'\n\nfilename:${e.fileName}\nsource:${e.source}\nlocation:${e.location}\ndata:${e.data}`)
+                // throw Error(`lightningcss error processing from webpage '${foundCss.url}'\n\nfilename:${e.fileName}\nsource:${e.source}\nlocation:${e.location}\ndata:${e.data}`)
                 return []
             }
         }),
@@ -159,7 +159,7 @@ function extractMediaQueryExcerpt(
         index++
         const wordAtIndex = code.slice(index, index + 5).toString()
         if (wordAtIndex !== 'media') {
-            throw new Error(
+            throw Error(
                 `${index} is not the start of @media and instead points to \`${wordAtIndex}\``,
             )
         }
@@ -195,13 +195,13 @@ function getCssDimension(obj: any): CssDimension {
         if (obj?.value?.type === 'value') {
             const uom = obj.value?.value?.unit
             if (uom !== 'px') {
-                throw new Error()
+                throw Error()
             }
             const value = obj.value?.value?.value
             return { uom, value }
         }
     }
-    throw new Error()
+    throw Error()
 }
 
 function createCssMediaQueryFromInterval(
@@ -247,7 +247,7 @@ function createCssMediaQueryFromInterval(
             break
     }
     if (!lowerBound || !upperBound) {
-        throw new Error()
+        throw Error()
     }
     if (lowerBound!.value < upperBound!.value) {
         return {

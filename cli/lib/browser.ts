@@ -1,35 +1,150 @@
 import { stdin } from 'node:process'
 import {
     type BrowserEngine,
-    checkPlaywrightBrowserDistributions,
+    checkPlaywrightBrowserInstalls,
+    getBrowserInstallNeededDeps,
+    getBrowserInstallsNeedingSystemDeps,
     resolveDevices,
 } from '@eighty4/plunder-core'
 
-export async function confirmCaptureBrowserInstalls(
-    defaultBrowser: BrowserEngine,
+export type BrowserInstallOpts = {
+    promptConfirmInstall: boolean
+    installSystemDependencies: boolean
+    showSystemDependencies: boolean
+}
+
+export async function confirmHrefCheckingBrowserInstalls(
+    installOpts: BrowserInstallOpts,
+) {
+    await confirmBrowserInstalls(installOpts, new Set(['chromium']), true)
+}
+
+export async function confirmActiveScreenCaptureBrowserInstalls(
+    installOpts: BrowserInstallOpts,
     headless: boolean,
-    modernDevices: boolean,
-    deviceQueries: false | Array<string>,
-): Promise<void> {
+) {
     await confirmBrowserInstalls(
-        new Set([
-            defaultBrowser,
-            ...resolveDevices({ deviceQueries, modernDevices }).map(
-                device => device.browser,
-            ),
-        ]),
+        installOpts,
+        new Set(['chromium', 'firefox', 'webkit']),
         headless,
     )
 }
 
-export async function confirmBrowserInstalls(
+export async function confirmDeviceScreenCaptureBrowserInstalls(
+    installOpts: BrowserInstallOpts,
+    defaultBrowser: BrowserEngine,
+    modernDevices: boolean,
+    deviceQueries: false | Array<string>,
+    headless: boolean,
+) {
+    await confirmBrowserInstalls(
+        installOpts,
+        resolveBrowsersForScreenCapture(
+            defaultBrowser,
+            modernDevices,
+            deviceQueries,
+        ),
+        headless,
+    )
+}
+
+function resolveBrowsersForScreenCapture(
+    defaultBrowser: BrowserEngine,
+    modernDevices: boolean,
+    deviceQueries: false | Array<string>,
+): Set<BrowserEngine> {
+    return new Set([
+        defaultBrowser,
+        ...resolveDevices({ deviceQueries, modernDevices }).map(
+            device => device.browser,
+        ),
+    ])
+}
+
+async function confirmBrowserInstalls(
+    installOpts: BrowserInstallOpts,
     browsers: Set<BrowserEngine>,
     headless: boolean,
-): Promise<void> {
-    const checkDists = await checkPlaywrightBrowserDistributions(
+) {
+    if (installOpts.showSystemDependencies) {
+        await showBrowserInstallNeededDeps(browsers, headless)
+    } else if (installOpts.promptConfirmInstall) {
+        await promptIfBrowserInstallsNeeded(browsers, headless)
+    } else {
+        // in the case of `--no-confirm-install` cli arg
+        // error exit if system dependencies are required
+        await exitIfBrowserSystemDepsNeeded(browsers, headless)
+    }
+}
+
+async function showBrowserInstallNeededDeps(
+    browsers: Set<BrowserEngine>,
+    headless: boolean,
+) {
+    const result = await getBrowserInstallNeededDeps(browsers, headless)
+    if (result.dependencies.length) {
+        console.log(
+            `All system dependencies are present for browser(s) ${prettyListBrowsers(Array.from(browsers))}.`,
+        )
+        process.exit(0)
+    } else {
+        console.log(
+            `System dependencies are missing for browser(s) ${prettyListBrowsers(Array.from(browsers))}.`,
+        )
+        console.log(
+            'Swap `--show-deps` for `--install-deps` and these dependencies will be installed with your browsers:',
+        )
+        for (const dependency of result.dependencies) {
+            console.log(' -', dependency)
+        }
+        process.exit(1)
+    }
+}
+
+async function exitIfBrowserSystemDepsNeeded(
+    browsers: Set<BrowserEngine>,
+    headless: boolean,
+) {
+    const needsSystemDeps = await getBrowserInstallsNeedingSystemDeps(
         browsers,
         headless,
     )
+    if (needsSystemDeps.length) {
+        printInstallDepsCommandAndExit(needsSystemDeps)
+    }
+}
+
+function prettyListBrowsers(b: Array<BrowserEngine>): string {
+    return `${b.slice(0, -1).join(', ')} and ${b.at(-1)}`
+}
+
+function printInstallDepsCommandAndExit(
+    missingSystemDeps: Array<BrowserEngine>,
+): never {
+    console.log(
+        'Plunder uses Playwright to drive web browsers and needs to install system dependencies for the browser(s) this command uses.',
+    )
+    console.log(
+        `The browser(s) missing dependencies are ${prettyListBrowsers(missingSystemDeps)}.`,
+    )
+    console.log()
+    console.log(
+        'Run this same command with `--install-deps` to install the dependencies the browser(s) need.',
+    )
+    console.log(
+        'Run this same command with `--show-deps` to see the dependencies that would be installed.',
+    )
+    process.exit(1)
+}
+
+async function promptIfBrowserInstallsNeeded(
+    browsers: Set<BrowserEngine>,
+    headless: boolean,
+): Promise<void> {
+    const checkDists = await checkPlaywrightBrowserInstalls(browsers, headless)
+    if (checkDists.needsSystemDeps.length) {
+        printInstallDepsCommandAndExit(checkDists.needsSystemDeps)
+    }
     const updateCount =
         checkDists.needsUpdate.length + checkDists.notInstalled.length
     if (updateCount === 0) {
@@ -80,7 +195,7 @@ export async function confirmBrowserInstalls(
     console.log(desc.join(' '), '\n')
     if (!process.stdin.isTTY) {
         console.log(
-            'Use `--confirm-install` to confirm downloading Playwright browsers in a non-tty environment.',
+            'Use `--no-confirm-install` to skip confirming downloading Playwright browsers in a non-tty/CICD environment.',
         )
         process.exit(1)
     } else {

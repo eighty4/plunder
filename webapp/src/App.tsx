@@ -13,7 +13,7 @@ function createPlunderApi(): PlunderCaptureApi {
         case 'result':
             return new PlunderResultApi(window.plunder.webpages || [])
         default:
-            throw new Error()
+            throw Error()
     }
 }
 

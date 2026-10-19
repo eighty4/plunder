@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import type { Page } from 'playwright-core'
 import { ZodError, z } from 'zod'
-import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
 
@@ -64,7 +64,7 @@ export async function checkAnchorHrefs(
     opts: CheckHrefsOptions,
 ): Promise<CheckHrefsResult> {
     validateCheckHrefsOptions(opts)
-    await installMissingBrowserDistributions(new Set(['chromium']), true)
+    await playwrightInstall(new Set(['chromium']), true)
     const browsers = new BrowserManager()
     try {
         const collectedHrefs = await Promise.all(

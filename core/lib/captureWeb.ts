@@ -10,7 +10,7 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
 import { parsePageForBreakpoints } from './pageParse.ts'
-import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 
 export type OpenPageReq = {
@@ -68,7 +68,7 @@ export interface CaptureWebSocketOpts {
 
 // installs browsers before creating CaptureWebSocket and starting http services
 export async function launchCaptureWebSocket(opts: CaptureWebSocketOpts) {
-    await installMissingBrowserDistributions(new Set(['chromium']), true)
+    await playwrightInstall(new Set(['chromium']), true)
     return new CaptureWebSocketImpl(opts)
 }
 

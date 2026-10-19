@@ -23,7 +23,7 @@ describe('resolveCaptureHook', () => {
                 'capture.ts',
                 `
 export default async function (page) {
-    throw new TypeError('Ginto Nord Condensed')
+    throw TypeError('Ginto Nord Condensed')
 }
 `,
             )

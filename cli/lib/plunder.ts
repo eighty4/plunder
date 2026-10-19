@@ -10,22 +10,53 @@ import {
 import { devicesPrintCommand } from './devices.ts'
 import { errorPrint } from './error.ts'
 import { linkCheckingCommand } from './links.ts'
+import type { BrowserInstallOpts } from './browser.ts'
 
 const knownOpts: Record<string, any> = {
-    all: Boolean,
-    ['booty-port']: [Boolean, Number],
-    ['capture-hook']: String,
-    ['confirm-install']: Boolean,
-    ['css-breakpoints']: Boolean,
+    // default browser engine when not specified by a device query
     browser: ['chromium', 'firefox', 'webkit'],
-    device: [Array, String],
-    'modern-devices': Boolean,
+
+    // do not run the browser headless
     'not-headless': Boolean,
-    help: Boolean,
+
+    // options for screenshot capture
+    // the "booty" port for a local dev server to show capture results
+    // use `--no-booty-port` to skip launching the webapp
+    ['booty-port']: [Boolean, Number],
+    // path to a js or ts module to setup the page before each capture
+    ['capture-hook']: String,
+    // whether to parse css and capture screenshots on css breakpoints
+    ['css-breakpoints']: Boolean,
+    // launch the webapp as an active capture ui with a ws api
+    ui: Boolean,
+
+    // listing devices opts with `device` subcommand
+    // print all supported devices
+    all: Boolean,
+
+    // used with `device` subcommand and capturing screenshots
+    // device queries to find devices to simulate capturing on
+    device: [Array, String],
+
+    // opt-in to screenshot capture with recent Android and iPhone devices
+    'modern-devices': Boolean,
+
+    // output options
     out: String,
     'out-dir': String,
     'out-file': String,
-    ui: Boolean,
+
+    // browser install behavior
+    // `--confirm-install` is the default behavior
+    // use `--no-confirm-install` to approve browser installs without a stdin prompt
+    // `--no-comfirm-install` will still abort if system dependencies are needed
+    ['confirm-install']: Boolean,
+    // `--install-deps` to confirm installing system dependencies for browsers
+    ['install-deps']: Boolean,
+    // `--show-deps` to print needed system dependencies for browsers and exit
+    ['show-deps']: Boolean,
+
+    help: Boolean,
 }
 
 if (!isDevUI()) {
@@ -59,6 +90,10 @@ nopt.unknownHandler = function (key: string) {
 
 const parsed = nopt(knownOpts, shortHands)
 
+if (typeof parsed['confirm-install'] === 'undefined') {
+    parsed['confirm-install'] = true
+}
+
 type PlunderMode = 'capture' | 'devices' | 'links'
 
 const mode = (function resolveMode(): PlunderMode | null {
@@ -90,8 +125,12 @@ function bootyPort(): false | number {
     }
 }
 
-function mustPromptConfirmInstall(): boolean {
-    return parsed['confirm-install'] === true
+function browserInstallOpts(): BrowserInstallOpts {
+    return {
+        promptConfirmInstall: parsed['confirm-install'] !== false,
+        installSystemDependencies: parsed['install-deps'] === true,
+        showSystemDependencies: parsed['show-deps'] === true,
+    }
 }
 
 if (parsed.help) {
@@ -106,11 +145,11 @@ if (parsed.help) {
             outputFile: parsed['out'] || parsed['out-file'],
             urls: parsed.argv.remain.filter(remain => remain !== 'links'),
         },
-        mustPromptConfirmInstall(),
+        browserInstallOpts(),
     )
 } else if (isDevUI() && parsed['ui'] === true) {
     await activeScreenshotCapture(
-        mustPromptConfirmInstall(),
+        browserInstallOpts(),
         parsed['not-headless'] !== true,
     )
 } else {
@@ -126,8 +165,8 @@ if (parsed.help) {
             recursive: parsed['recursive'] === true,
             urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
         },
+        browserInstallOpts(),
         {
-            promptConfirmInstall: mustPromptConfirmInstall(),
             bootyPort: bootyPort(),
         },
     )

@@ -24,7 +24,4 @@ export {
     resolveDevices,
 } from './devices.ts'
 export { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
-export {
-    checkPlaywrightBrowserDistributions,
-    type PlaywrightBrowserDistributions,
-} from './playwright/playwrightInstall.ts'
+export * from './playwright/playwrightExports.ts'

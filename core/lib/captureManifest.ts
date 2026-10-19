@@ -123,7 +123,7 @@ function resolveMediaQueryScreenshots(
                 }))
                 switch (bound) {
                     case 'exact':
-                        throw new Error('unsupported breakpoint bound ' + bound)
+                        throw Error('unsupported breakpoint bound ' + bound)
                         break
                     case 'lower':
                         const lowerOn = dimension.value

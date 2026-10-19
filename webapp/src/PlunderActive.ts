@@ -96,7 +96,7 @@ export class PlunderActiveApi extends PlunderCaptureApi {
     }
 
     set captureSource(_source: CaptureSource) {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
 
     get mode(): PlunderMode {
@@ -136,7 +136,7 @@ export class PlunderWebSocket {
 
     constructor(port: number) {
         if (!port || isNaN(port)) {
-            throw new Error('PlunderWebSocket(port) is invalid')
+            throw Error('PlunderWebSocket(port) is invalid')
         }
         this.#messages = new Subject()
         this.#status = new BehaviorSubject<WebSocketConnection>('connecting')

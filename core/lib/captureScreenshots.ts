@@ -11,7 +11,7 @@ import { resolveDevices } from './devices.ts'
 import { makeOutDirForPageUrl } from './fileSystem.ts'
 import { parsePagesForCapture } from './pageParse.ts'
 import { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
-import { installMissingBrowserDistributions } from './playwright/playwrightInstall.ts'
+import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 
 export interface CaptureScreenshotsOptions {
@@ -214,7 +214,7 @@ export async function captureScreenshots(
 async function installCaptureBrowserDistributions(
     opts: CaptureScreenshotsOptions,
 ): Promise<void> {
-    await installMissingBrowserDistributions(
+    await playwrightInstall(
         new Set([
             opts.browser,
             ...resolveDevices(opts).map(device => device.browser),

@@ -96,7 +96,7 @@ export class PlunderResultApi extends PlunderCaptureApi {
                 },
             })
         } else {
-            throw new Error('wtf')
+            throw Error('wtf')
         }
     }
 

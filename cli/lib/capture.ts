@@ -18,8 +18,9 @@ import {
 import { z } from 'zod'
 import ansi from './ansi.ts'
 import {
-    confirmBrowserInstalls,
-    confirmCaptureBrowserInstalls,
+    confirmActiveScreenCaptureBrowserInstalls,
+    confirmDeviceScreenCaptureBrowserInstalls,
+    type BrowserInstallOpts,
 } from './browser.ts'
 import { errorPrint } from './error.ts'
 
@@ -34,15 +35,10 @@ export function isDevUI(): boolean {
 }
 
 export async function activeScreenshotCapture(
-    promptConfirmInstall: boolean,
+    installOpts: BrowserInstallOpts,
     headless: boolean,
 ): Promise<void> {
-    if (promptConfirmInstall) {
-        await confirmBrowserInstalls(
-            new Set(['chromium', 'firefox', 'webkit']),
-            headless,
-        )
-    }
+    await confirmActiveScreenCaptureBrowserInstalls(installOpts, headless)
     const modulePath = fileURLToPath(import.meta.url)
     const webappPath = resolve(modulePath, '../../webapp/index.html')
     const webSocket = await launchCaptureWebSocket({ serveUI: webappPath })
@@ -50,26 +46,25 @@ export async function activeScreenshotCapture(
     return new Promise(() => {})
 }
 
-export type CaptureScreenshotsCommandOptions = {
-    promptConfirmInstall: boolean
+export type CaptureReportOpts = {
     bootyPort: false | number
 }
 
 export async function captureScreenshotsCommand(
     opts: Omit<CaptureScreenshotsOptions, 'progress'>,
-    { bootyPort, promptConfirmInstall }: CaptureScreenshotsCommandOptions,
+    installOpts: BrowserInstallOpts,
+    { bootyPort }: CaptureReportOpts,
 ): Promise<never> {
     await validateCaptureOpts(opts)
 
     try {
-        if (promptConfirmInstall) {
-            await confirmCaptureBrowserInstalls(
-                opts.browser,
-                opts.headless,
-                opts.modernDevices,
-                opts.deviceQueries,
-            )
-        }
+        await confirmDeviceScreenCaptureBrowserInstalls(
+            installOpts,
+            opts.browser,
+            opts.modernDevices,
+            opts.deviceQueries,
+            opts.headless,
+        )
         const result = await captureScreenshots({ ...opts, progress })
         await writeWebappReport(opts.outDir, result)
         if (bootyPort === false) {

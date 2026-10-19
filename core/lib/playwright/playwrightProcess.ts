@@ -129,26 +129,30 @@ function createBrowserLookup(): BrowserLookup<any> {
     }
 }
 
-function getContextLimitEnvVar() {
-    const envVar = process.env['PLUNDER_BROWSER_LIMIT']
-    if (envVar && envVar.length) {
-        try {
-            return parseInt(envVar, 10)
-        } catch (ignore) {}
+function getContextLimitEnvVar(): number | undefined {
+    const val = process.env['PLUNDER_BROWSER_LIMIT']
+    if (val && val.length) {
+        const parsed = parseInt(val, 10)
+        if (isNaN(parsed)) {
+            throw TypeError(
+                `environment variable PLUNDER_BROWSER_LIMIT value \`${val}\` must be a number`,
+            )
+        }
+        return parsed
     }
+    return undefined
 }
 
 async function resolvePlaywrightBrowserType(
     browser: BrowserEngine,
 ): Promise<BrowserType> {
+    const playwright = await import('playwright')
     switch (browser) {
         case 'chromium':
-            return (await import('playwright')).chromium
         case 'firefox':
-            return (await import('playwright')).firefox
         case 'webkit':
-            return (await import('playwright')).webkit
+            return playwright[browser]
         default:
-            throw new Error(`unsupported browser ${browser}`)
+            throw TypeError(`unsupported browser ${browser}`)
     }
 }

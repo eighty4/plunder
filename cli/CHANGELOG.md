@@ -2,7 +2,17 @@
 
 ## [Unreleased]
 
-- ???
+### Added
+
+- Installing system dependencies for browser installs on linux is
+  managed with new CLI args `--show-deps` and `--install-deps`.
+
+### Changed
+
+- `--confirm-install` was previously used to skip the user confirmation
+  prompt for installing browsers and a Plunder process would fail in
+  CICD without this flag. `--no-confirm-install` is now used to skip
+  the prompt for confirming browser installs.
 
 ## [v0.0.8] - 2025-07-03
 

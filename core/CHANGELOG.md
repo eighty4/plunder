@@ -2,7 +2,17 @@
 
 ## [Unreleased]
 
-- ???
+### Added
+
+- To enable the CLI to prompt when system dependencies are needed for
+  browser installs on linux platforms, `playwright-core` has added
+  `getBrowserInstallNeededDeps`, `getBrowserInstallsNeedingSystemDeps` and
+  `PlaywrightCliInstallDepsDryRun`.
+
+### Changed
+
+- Renamed `checkPlaywrightBrowserDistribution` and `PlaywrightBrowserDistribution`
+  to `checkPlaywrightBrowserInstalls` and `PlaywrightBrowserInstalls`.
 
 ## [v0.0.6] - 2025-07-03
 

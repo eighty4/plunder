@@ -116,7 +116,7 @@ export class CaptureHookImportError extends Error {
 
 export function resolveCaptureHookImport(specifier: string): CaptureHookImport {
     if (specifier === null || typeof specifier !== 'string') {
-        throw new TypeError('resolveCaptureHookImport arg must be a string')
+        throw TypeError('resolveCaptureHookImport arg must be a string')
     }
     const fnSuffixIndex = specifier.search(/#.*$/)
     let path =
