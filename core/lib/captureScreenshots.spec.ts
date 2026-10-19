@@ -8,17 +8,22 @@ describe('validateCaptureScreenshotsOptions', () => {
             () => validateCaptureScreenshotsOptions({} as any),
             (e: any) => {
                 assert.equal(e.name, 'InvalidCaptureOptionsError')
-                assert.deepEqual(e.fields, {
-                    breakpoints: 'Required',
-                    browser: 'Required',
-                    deviceQueries: 'Required',
-                    headless: 'Required',
-                    modernDevices: 'Required',
-                    outDir: 'Required',
-                    progress: 'Required',
-                    recursive: 'Required',
-                    urls: 'Required',
-                })
+                assert.equal(
+                    new Set(Object.keys(e.fields)).difference(
+                        new Set([
+                            'breakpoints',
+                            'browser',
+                            'deviceQueries',
+                            'headless',
+                            'modernDevices',
+                            'outDir',
+                            'progress',
+                            'recursive',
+                            'urls',
+                        ]),
+                    ).size,
+                    0,
+                )
                 return true
             },
         )

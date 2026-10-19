@@ -5,11 +5,7 @@ import { resolveDependency } from './resolveDependency.ts'
 export type BrowserInstall = { name: BrowserLabelForCLI; revision: string }
 
 export type BrowserLabelForCLI =
-    | 'chromium'
-    | 'chromium-headless-shell'
-    | 'ffmpeg'
-    | 'firefox'
-    | 'webkit'
+    'chromium' | 'chromium-headless-shell' | 'ffmpeg' | 'firefox' | 'webkit'
 
 export type FallibleCommandResult = {
     output: string

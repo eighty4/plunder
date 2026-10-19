@@ -4,6 +4,7 @@
   "compilerOptions": {
     "rootDir": "lib",
     "outDir": "lib_js",
-    "declarationDir": "lib_types"
+    "declarationDir": "lib_types",
+    "types": ["@types/node", "@types/ws"]
   }
 }

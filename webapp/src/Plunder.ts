@@ -24,10 +24,7 @@ export type WebpageCaptureState = {
 }
 
 export type WebSocketConnection =
-    | 'connected'
-    | 'connecting'
-    | 'error'
-    | 'not-applicable'
+    'connected' | 'connecting' | 'error' | 'not-applicable'
 
 export type PlunderMode = 'active' | 'result'
 
