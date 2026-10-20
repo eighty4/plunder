@@ -21,7 +21,7 @@ export async function makeOutDirForPageUrl(
 // todo search and hash
 function makeUrlSubdirPath(url: URL): string {
     if (url.pathname.length && url.pathname !== '/') {
-        return join(url.host.replace(':', '_'), ...url.pathname.split('/'))
+        return join(url.host.replace(':', '_'), url.pathname)
     } else {
         return url.host.replace(':', '_')
     }
