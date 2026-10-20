@@ -17,7 +17,7 @@ export interface CheckHrefsOptions {
     urls: Array<string>
 }
 
-export class InvalidCheckHrefsOption {
+export class InvalidCheckHrefsOptionsError {
     readonly invalidFields: Array<string>
     constructor(invalidFields: Array<string>) {
         this.invalidFields = invalidFields
@@ -34,7 +34,7 @@ function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
             .parse(opts)
     } catch (e: any) {
         if (e instanceof ZodError) {
-            throw new InvalidCheckHrefsOption(
+            throw new InvalidCheckHrefsOptionsError(
                 e.issues.map(i => i.path.join('.')),
             )
         } else {

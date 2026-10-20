@@ -2,7 +2,7 @@ import { type FC, type MouseEvent, useEffect, useRef, useState } from 'react'
 import {
     type DeviceDefinition,
     type MediaQueryBreakpoint,
-} from '@eighty4/plunder-core'
+} from '@eighty4/plunder-core/web'
 import {
     type CaptureSource,
     type CaptureSourceState,

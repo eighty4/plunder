@@ -2,7 +2,7 @@ import {
     type CssBreakpoint,
     type DeviceDefinition,
     type MediaQueryBreakpoint,
-} from '@eighty4/plunder-core'
+} from '@eighty4/plunder-core/web'
 import { type Observable } from 'rxjs'
 
 export abstract class PlunderCaptureApi {

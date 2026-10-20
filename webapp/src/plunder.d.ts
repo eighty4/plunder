@@ -1,4 +1,4 @@
-import { type CaptureScreenshotManifest } from '@eighty4/plunder-core'
+import { type CaptureScreenshotManifest } from '@eighty4/plunder-core/web'
 
 declare global {
     interface Window {

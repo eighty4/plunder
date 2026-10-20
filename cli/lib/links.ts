@@ -1,6 +1,6 @@
 import {
     checkAnchorHrefs,
-    InvalidCheckHrefsOption,
+    InvalidCheckHrefsOptionsError,
     type CheckHrefsOptions,
     type CheckHrefsResult,
 } from '@eighty4/plunder-core'
@@ -22,7 +22,7 @@ export async function linkCheckingCommand(
         printResult(result)
         process.exit(result.good ? 0 : 1)
     } catch (e: any) {
-        if (e instanceof InvalidCheckHrefsOption) {
+        if (e instanceof InvalidCheckHrefsOptionsError) {
             errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
         } else {
             errorPrint(e)

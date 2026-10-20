@@ -13,6 +13,7 @@
 
 - Renamed `checkPlaywrightBrowserDistribution` and `PlaywrightBrowserDistribution`
   to `checkPlaywrightBrowserInstalls` and `PlaywrightBrowserInstalls`.
+- Renamed `InvalidCheckHrefsOption` to `InvalidCheckHrefsOptionsError`.
 
 ## [v0.0.6] - 2025-07-03
 

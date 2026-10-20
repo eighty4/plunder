@@ -2,7 +2,7 @@ import {
     type CaptureScreenshotManifest,
     type DeviceScreenshots,
     type MediaQueryBreakpoint,
-} from '@eighty4/plunder-core'
+} from '@eighty4/plunder-core/web'
 import {
     type CaptureSource,
     type CaptureSourceState,

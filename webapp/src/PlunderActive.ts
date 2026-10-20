@@ -3,7 +3,7 @@ import {
     type CaptureWebSocketRes,
     type CssMediaQuery,
     type DeviceDefinition,
-} from '@eighty4/plunder-core'
+} from '@eighty4/plunder-core/web'
 import {
     type CaptureSource,
     type CaptureSourceState,

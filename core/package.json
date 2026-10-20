@@ -19,12 +19,13 @@
   "exports": {
     ".": {
       "bun": "./lib/api.ts",
-      "node": "./lib_js/api.js",
-      "default": "./lib_js/api.web.js",
-      "types": {
-        "node": "./lib_types/api.d.ts",
-        "default": "./lib_types/api.web.d.ts"
-      }
+      "types": "./lib_types/api.d.ts",
+      "import": "./lib_js/api.js"
+    },
+    "./web": {
+      "bun": "./lib/api.web.ts",
+      "types": "./lib_types/api.web.d.ts",
+      "import": "./lib_js/api.web.js"
     }
   },
   "scripts": {

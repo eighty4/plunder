@@ -59,7 +59,7 @@ export type CaptureWebSocketRes =
     | BreakpointCaptureRes
     | DeviceCaptureRes
 
-export interface CaptureWebSocketOpts {
+export type CaptureWebSocketOpts = {
     // WS port defaults to 7944
     port?: number
     // absolute path to webapp index.html or false to disable
