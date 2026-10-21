@@ -88,9 +88,14 @@ export async function checkAnchorHrefs(
     const browsers = new BrowserManager()
     try {
         const collectedHrefs = await Promise.all(
-            opts.urls.map(async url =>
-                collectHrefs(await browsers.newPage(browser, headless), url),
-            ),
+            opts.urls.map(async url => {
+                const page = await browsers.newPage(browser, headless)
+                try {
+                    return await collectHrefs(page, url)
+                } finally {
+                    await page.close()
+                }
+            }),
         )
         const pageChecks = await Promise.all(
             collectedHrefs.map(hrefs => checkHrefs(hrefs)),
@@ -125,13 +130,13 @@ async function collectHrefs(
     const anchors = await page.locator('a').all()
     const hrefs = await Promise.all(
         anchors.map(anchor => anchor.getAttribute('href')),
-    ).then(hrefs =>
-        hrefs
+    )
+    return {
+        url,
+        hrefs: hrefs
             .filter(href => href !== null)
             .map(href => rewriteHref(href, parsedUrl, baseHref)),
-    )
-    await page.close()
-    return { url, hrefs }
+    }
 }
 
 async function checkHrefs(
