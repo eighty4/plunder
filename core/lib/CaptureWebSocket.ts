@@ -68,7 +68,7 @@ export type CaptureWebSocketOpts = {
 
 // installs browsers before creating CaptureWebSocket and starting http services
 export async function launchCaptureWebSocket(opts: CaptureWebSocketOpts) {
-    await playwrightInstall(new Set(['chromium']), true)
+    await playwrightInstall(new Set(['chromium', 'firefox', 'webkit']), true)
     return new CaptureWebSocketImpl(opts)
 }
 
