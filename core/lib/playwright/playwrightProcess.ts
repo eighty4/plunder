@@ -1,10 +1,15 @@
 import type { Browser, BrowserType, Page } from 'playwright'
 import type { BrowserEngine, BrowserOptions } from '../plunderBrowsers.ts'
 
-type BrowserLookup<T> = Record<
-    BrowserEngine,
-    Record<'headed' | 'headless', T | null>
->
+type BrowserLaunch =
+    | {
+          state: 'launching'
+          launching: Promise<Browser>
+      }
+    | {
+          state: 'launched'
+          launched: Browser
+      }
 
 type QueuedPageReq = {
     browser: BrowserEngine
@@ -15,16 +20,20 @@ type QueuedPageReq = {
 
 export class BrowserManager {
     // map of browser instances
-    #browsers: BrowserLookup<Browser>
+    #browsers: Record<
+        BrowserEngine,
+        Record<'headed' | 'headless', BrowserLaunch | null>
+    >
     #contextLimit: number
-    // tracks browsers as they're launched to prevent relaunching
-    #launched: BrowserLookup<Promise<Browser>>
     #queued: Array<QueuedPageReq>
 
     constructor(ctxLimit: number = 2) {
-        this.#browsers = createBrowserLookup()
+        this.#browsers = {
+            chromium: { headed: null, headless: null },
+            firefox: { headed: null, headless: null },
+            webkit: { headed: null, headless: null },
+        }
         this.#contextLimit = getContextLimitEnvVar() ?? ctxLimit
-        this.#launched = createBrowserLookup()
         this.#queued = []
     }
 
@@ -44,10 +53,17 @@ export class BrowserManager {
 
     async shutdown() {
         await Promise.all(
-            Object.values(this.#launched)
+            Object.values(this.#browsers)
                 .flatMap(browsers => Object.values(browsers))
                 .filter(browser => browser !== null)
-                .map(async browser => (await browser).close()),
+                .map(async browser => {
+                    switch (browser.state) {
+                        case 'launched':
+                            return await browser.launched.close()
+                        case 'launching':
+                            return await (await browser.launching).close()
+                    }
+                }),
         )
     }
 
@@ -56,20 +72,26 @@ export class BrowserManager {
         headless: boolean,
     ): Promise<Browser> {
         const headlessKey = headless ? 'headless' : 'headed'
-        if (!this.#launched[browser][headlessKey]) {
-            this.#launched[browser][headlessKey] = launchBrowser(
-                browser,
-                headless,
-            )
-        }
         if (!this.#browsers[browser][headlessKey]) {
-            this.#browsers[browser][headlessKey] = (
-                await this.#launched[browser][headlessKey]
-            ).once('disconnected', () =>
+            this.#browsers[browser][headlessKey] = {
+                state: 'launching',
+                launching: launchBrowser(browser, headless),
+            }
+            const launched =
+                await this.#browsers[browser][headlessKey].launching
+            launched.once('disconnected', () =>
                 this.#onBrowserDisconnected(browser, headless),
             )
+            this.#browsers[browser][headlessKey] = {
+                state: 'launched',
+                launched,
+            }
+            return launched
+        } else if (this.#browsers[browser][headlessKey].state === 'launching') {
+            return await this.#browsers[browser][headlessKey].launching
+        } else {
+            return this.#browsers[browser][headlessKey].launched
         }
-        return this.#browsers[browser][headlessKey]
     }
 
     get #currentContextCount(): number {
@@ -77,7 +99,11 @@ export class BrowserManager {
             .flatMap(browsers => Object.values(browsers))
             .filter(browser => browser !== null)
             .reduce((n, browser) => {
-                return n + browser.contexts().length
+                if (browser.state === 'launching') {
+                    return n
+                } else {
+                    return n + browser.launched.contexts().length
+                }
             }, 0)
     }
 
@@ -97,10 +123,7 @@ export class BrowserManager {
     }
 
     #onBrowserDisconnected(browser: BrowserEngine, headless: boolean) {
-        const headlessKey = headless ? 'headless' : 'headed'
-        this.#browsers[browser][headlessKey] = this.#launched[browser][
-            headlessKey
-        ] = null
+        this.#browsers[browser][headless ? 'headless' : 'headed'] = null
     }
 
     #onPageClose = () => {
@@ -119,14 +142,6 @@ async function launchBrowser(
 ): Promise<Browser> {
     const browserType = await resolvePlaywrightBrowserType(browser)
     return await browserType.launch({ headless })
-}
-
-function createBrowserLookup(): BrowserLookup<any> {
-    return {
-        chromium: { headed: null, headless: null },
-        firefox: { headed: null, headless: null },
-        webkit: { headed: null, headless: null },
-    }
 }
 
 function getContextLimitEnvVar(): number | undefined {
