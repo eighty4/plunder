@@ -140,7 +140,6 @@ async function checkHrefs(
     const result: PageCheckResult['hrefs'] = []
     const headers = new Headers()
     headers.set('Accept', 'text/html')
-    headers.set('Accept-Encoding', 'gzip, deflate, br, zstd')
     headers.set(
         'User-Agent',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
