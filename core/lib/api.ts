@@ -8,7 +8,6 @@ export {
     checkAnchorHrefs,
 } from './captureLinks.ts'
 export {
-    type BreakpointScreenshots,
     type CaptureScreenshotManifest,
     type DeviceScreenshots,
     type MediaQueryBreakpoint,

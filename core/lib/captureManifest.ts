@@ -33,13 +33,6 @@ export interface MediaQueryBreakpoint {
 
 export type MediaQueryLocation = Pick<CssMediaQuery, 'code' | 'filename'>
 
-export interface BreakpointScreenshots {
-    bound: 'lower' | 'upper'
-    dimension: CssDimension
-    screenshotOn: string
-    screenshotOut: string
-}
-
 export interface DeviceScreenshots {
     definition: DeviceDefinition
     landscape: string

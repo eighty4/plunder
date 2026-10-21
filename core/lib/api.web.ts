@@ -1,7 +1,6 @@
 // package exports for browser bundlers
 
 export {
-    type BreakpointScreenshots,
     type CaptureScreenshotManifest,
     type DeviceScreenshots,
     type MediaQueryBreakpoint,
