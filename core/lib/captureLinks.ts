@@ -28,7 +28,7 @@ function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
     try {
         z.object({
             outputFile: z.string().optional(),
-            urls: z.array(z.string().url()),
+            urls: z.array(z.url()),
         })
             .strict()
             .parse(opts)

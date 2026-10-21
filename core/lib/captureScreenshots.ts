@@ -148,7 +148,7 @@ export function validateCaptureScreenshotsOptions(
             outDir: z.string(),
             progress: z.function(),
             recursive: z.boolean(),
-            urls: z.array(z.string().url()),
+            urls: z.array(z.url()),
         })
             .strict()
             .parse(opts)

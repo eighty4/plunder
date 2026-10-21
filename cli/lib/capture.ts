@@ -134,7 +134,7 @@ async function validateCaptureOpts(
     } else {
         opts.urls.forEach((url, i) => {
             try {
-                z.string().url().parse(url)
+                z.url().parse(url)
             } catch (e) {
                 const label = opts.urls.length === 1 ? 'URL' : `URL[${i}]`
                 errorPrint(`${label} is not a valid url`)
