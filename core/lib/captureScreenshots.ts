@@ -179,7 +179,7 @@ export async function captureScreenshots(
     opts: CaptureScreenshotsOptions,
 ): Promise<Array<CaptureScreenshotsResult>> {
     validateCaptureScreenshotsOptions(opts)
-    await installCaptureBrowserDistributions(opts)
+    await installBrowsersForCapture(opts)
     const captureHook = opts.captureHook
         ? await resolveCaptureHook(opts.captureHook)
         : null
@@ -211,7 +211,7 @@ export async function captureScreenshots(
     }
 }
 
-async function installCaptureBrowserDistributions(
+async function installBrowsersForCapture(
     opts: CaptureScreenshotsOptions,
 ): Promise<void> {
     await playwrightInstall(
