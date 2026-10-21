@@ -28,3 +28,5 @@ export {
     getSupportedDeviceLabels,
 } from './devices.ts'
 export { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
+
+export type { CssCodeExcerpt } from './css/cssExports.ts'

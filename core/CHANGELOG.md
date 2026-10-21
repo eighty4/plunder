@@ -15,6 +15,10 @@
   to `checkPlaywrightBrowserInstalls` and `PlaywrightBrowserInstalls`.
 - Renamed `InvalidCheckHrefsOption` to `InvalidCheckHrefsOptionsError`.
 
+### Fixed
+
+- Added missing `CssCodeExcerpt` excerpt from `plunder-core` and `plunder-core/web`.
+
 ## [v0.0.6] - 2025-07-03
 
 ### Added

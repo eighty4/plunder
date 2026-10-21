@@ -59,4 +59,5 @@ export {
 } from './devices.ts'
 export { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
 
+export type { CssCodeExcerpt } from './css/cssExports.ts'
 export * from './playwright/playwrightExports.ts'
