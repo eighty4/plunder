@@ -17,7 +17,11 @@ export async function linkCheckingCommand(
 ): Promise<never> {
     console.log('Plundering anchor tags for broken links')
     try {
-        await confirmHrefCheckingBrowserInstalls(installOpts)
+        await confirmHrefCheckingBrowserInstalls(
+            installOpts,
+            opts.browser ?? 'chromium',
+            opts.headless ?? true,
+        )
         const result = await checkAnchorHrefs(opts)
         printResult(result)
         process.exit(result.good ? 0 : 1)

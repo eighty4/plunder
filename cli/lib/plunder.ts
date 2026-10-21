@@ -142,6 +142,8 @@ if (parsed.help) {
 } else if (mode === 'links') {
     await linkCheckingCommand(
         {
+            browser: parsed['browser'] ?? 'chromium',
+            headless: parsed['not-headless'] !== true,
             outputFile: parsed['out'] || parsed['out-file'],
             urls: parsed.argv.remain.filter(remain => remain !== 'links'),
         },

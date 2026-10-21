@@ -8,6 +8,8 @@
   browser installs on linux platforms, `playwright-core` has added
   `getBrowserInstallNeededDeps`, `getBrowserInstallsNeedingSystemDeps` and
   `PlaywrightCliInstallDepsDryRun`.
+- `CheckHrefsOptions` options for overriding the browser default of
+  headless `chromium` for link checking.
 
 ### Changed
 

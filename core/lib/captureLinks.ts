@@ -4,8 +4,24 @@ import { ZodError, z } from 'zod'
 import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
+import { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
 
 export interface CheckHrefsOptions {
+    /**
+     * The browser engine to use when parsing pages for anchor hrefs.
+     *
+     * Defaults to `chromium`.
+     */
+    browser?: BrowserEngine
+
+    /**
+     * Whether to launch browsers headless or graphically in the desktop
+     * environment.
+     *
+     * Defaults to `true`.
+     */
+    headless?: boolean
+
     /**
      * Optionally write results of link checking to output file path relative to current directory.
      */
@@ -27,6 +43,8 @@ export class InvalidCheckHrefsOptionsError {
 function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
     try {
         z.object({
+            browser: z.enum(BrowserEngineValues).optional(),
+            headless: z.boolean().optional(),
             outputFile: z.string().optional(),
             urls: z.array(z.url()),
         })
@@ -64,12 +82,14 @@ export async function checkAnchorHrefs(
     opts: CheckHrefsOptions,
 ): Promise<CheckHrefsResult> {
     validateCheckHrefsOptions(opts)
-    await playwrightInstall(new Set(['chromium']), true)
+    const browser = opts.browser ?? 'chromium'
+    const headless = opts.headless ?? true
+    await playwrightInstall(new Set([browser]), headless)
     const browsers = new BrowserManager()
     try {
         const collectedHrefs = await Promise.all(
             opts.urls.map(async url =>
-                collectHrefs(await browsers.newPage('chromium', true), url),
+                collectHrefs(await browsers.newPage(browser, headless), url),
             ),
         )
         const pageChecks = await Promise.all(

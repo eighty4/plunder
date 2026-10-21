@@ -15,8 +15,10 @@ export type BrowserInstallOpts = {
 
 export async function confirmHrefCheckingBrowserInstalls(
     installOpts: BrowserInstallOpts,
+    browser: BrowserEngine,
+    headless: boolean,
 ) {
-    await confirmBrowserInstalls(installOpts, new Set(['chromium']), true)
+    await confirmBrowserInstalls(installOpts, new Set([browser]), headless)
 }
 
 export async function confirmActiveScreenCaptureBrowserInstalls(
