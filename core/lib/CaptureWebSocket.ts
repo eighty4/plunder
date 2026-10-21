@@ -9,7 +9,7 @@ import { type Duplex, Transform } from 'node:stream'
 import WebSocket, { WebSocketServer } from 'ws'
 import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
 import { type DeviceDefinition, getModernDevices } from './devices.ts'
-import { parsePageForBreakpoints } from './pageParse.ts'
+import { parsePageForMediaQueries } from './pageParse.ts'
 import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 
@@ -142,7 +142,7 @@ async function onOpenPage(
     url: string,
 ) {
     const page = await browsers.newPage('chromium', true)
-    const { mediaQueries } = await parsePageForBreakpoints(page, url)
+    const { mediaQueries } = await parsePageForMediaQueries(page, url)
     send(ws, {
         type: 'media-queries',
         url,

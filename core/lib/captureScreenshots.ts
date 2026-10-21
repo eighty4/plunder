@@ -9,7 +9,7 @@ import { CaptureProgressUpdater } from './captureUpdater.ts'
 import { type CssMediaQuery } from './cssParse.ts'
 import { resolveDevices } from './devices.ts'
 import { makeOutDirForPageUrl } from './fileSystem.ts'
-import { parsePagesForCapture } from './pageParse.ts'
+import { parsePagesForMediaQueries } from './pageParse.ts'
 import { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
 import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
@@ -230,7 +230,11 @@ async function resolveUrlsAndMediaQueries(
 ): Promise<Record<string, null | Array<CssMediaQuery>>> {
     const result: Record<string, null | Array<CssMediaQuery>> = {}
     if (opts.breakpoints) {
-        const parsedPages = await parsePagesForCapture(browsers, opts, updater)
+        const parsedPages = await parsePagesForMediaQueries(
+            browsers,
+            opts,
+            updater,
+        )
         for (const { url, mediaQueries } of parsedPages) {
             result[url] = mediaQueries
         }

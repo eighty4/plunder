@@ -13,7 +13,7 @@ export interface ParsePageResult {
     url: string
 }
 
-export async function parsePageForBreakpoints(
+export async function parsePageForMediaQueries(
     page: Page,
     url: string,
     recursive: boolean = false,
@@ -34,7 +34,7 @@ export async function parsePageForBreakpoints(
     }
 }
 
-export async function parsePagesForCapture(
+export async function parsePagesForMediaQueries(
     browsers: BrowserManager,
     opts: CaptureScreenshotsOptions,
     updater: CaptureProgressUpdater,
@@ -49,7 +49,7 @@ export async function parsePagesForCapture(
                 parsingPages[url] = browsers
                     .newPage('chromium', true)
                     .then(page =>
-                        parsePageForBreakpoints(page, url, opts.recursive),
+                        parsePageForMediaQueries(page, url, opts.recursive),
                     )
             }
         }
