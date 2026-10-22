@@ -91,12 +91,9 @@ function mapInstalledBrowserLabelsToRevisions(
     const result: Map<BrowserLabelForCLI, Set<string>> = new Map()
     for (const version of installList.versions) {
         for (const browser of version.browsers) {
-            const existingSet = result.get(browser.name)
-            if (existingSet) {
-                existingSet.add(browser.revision)
-            } else {
-                result.set(browser.name, new Set([browser.revision]))
-            }
+            result
+                .getOrInsertComputed(browser.name, () => new Set())
+                .add(browser.revision)
         }
     }
     return result

@@ -168,8 +168,8 @@ catalogs:
       specifier: ^1.64.1
       version: 1.64.1
     '@types/node':
-      specifier: ^24.0.10
-      version: 24.0.10
+      specifier: ^26.6.5
+      version: 26.6.5
     '@types/nopt':
       specifier: ^3.0.32
       version: 3.0.32
@@ -250,7 +250,7 @@ importers:
         version: link:../webapp
       '@types/node':
         specifier: 'catalog:'
-        version: 24.0.10
+        version: 26.6.5
       '@types/nopt':
         specifier: 'catalog:'
         version: 3.0.32
@@ -278,7 +278,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.0.10
+        version: 26.6.5
       '@types/ws':
         specifier: 'catalog:'
         version: 8.18.2
@@ -312,7 +312,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: 'catalog:'
-        version: 6.1.2(vite@8.3.4(@types/node@24.0.10))
+        version: 6.1.2(vite@8.3.4(@types/node@26.6.5))
       globals:
         specifier: 'catalog:'
         version: 17.13.0
@@ -321,10 +321,10 @@ importers:
         version: 7.0.2
       vite:
         specifier: 'catalog:'
-        version: 8.3.4(@types/node@24.0.10)
+        version: 8.3.4(@types/node@26.6.5)
       vite-plugin-singlefile:
         specifier: 'catalog:'
-        version: 2.3.4(vite@8.3.4(@types/node@24.0.10))
+        version: 2.3.4(vite@8.3.4(@types/node@26.6.5))
 
 packages:
 
@@ -435,8 +435,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@types/node@24.0.10':
-    resolution: {integrity: sha512-ENHwaH+JIRTDIEEbDK6QSQntAYGtbvdDXnMXnZaZ6k13Du1dPMmprkEHIL7ok2Wl2aZevetwTAb5S+7yIF+enA==}
+  '@types/node@26.6.5':
+    resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
 
   '@types/nopt@3.0.32':
     resolution: {integrity: sha512-UP8QR0GaR8AE3l4wDmyCx4lEkX5o/1YVeDBqb1UqmfHefZqFNedQLTsobfzw56CvlXVVbt6kAwJJbN1yDTp16Q==}
@@ -763,8 +763,8 @@ packages:
     engines: {node: '>=16.20.0'}
     hasBin: true
 
-  undici-types@7.8.0:
-    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
   vite-plugin-singlefile@2.3.4:
     resolution: {integrity: sha512-1FAhlTCL6KJDpSUudrVU+gspapvS+tmKCg70vwNaAU6tyXn3E/C6+NnwQIze06byhBRv7VggZ78K0h+J/Rsdrg==}
@@ -889,9 +889,9 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@types/node@24.0.10':
+  '@types/node@26.6.5':
     dependencies:
-      undici-types: 7.8.0
+      undici-types: 8.9.0
 
   '@types/nopt@3.0.32': {}
 
@@ -905,7 +905,7 @@ snapshots:
 
   '@types/ws@8.18.2':
     dependencies:
-      '@types/node': 24.0.10
+      '@types/node': 26.6.5
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -967,10 +967,10 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@vitejs/plugin-react@6.1.2(vite@8.3.4(@types/node@24.0.10))':
+  '@vitejs/plugin-react@6.1.2(vite@8.3.4(@types/node@26.6.5))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.4(@types/node@24.0.10)
+      vite: 8.3.4(@types/node@26.6.5)
 
   abbrev@5.0.0: {}
 
@@ -1126,14 +1126,14 @@ snapshots:
       '@typescript/typescript-win32-arm64': 7.0.2
       '@typescript/typescript-win32-x64': 7.0.2
 
-  undici-types@7.8.0: {}
+  undici-types@8.9.0: {}
 
-  vite-plugin-singlefile@2.3.4(vite@8.3.4(@types/node@24.0.10)):
+  vite-plugin-singlefile@2.3.4(vite@8.3.4(@types/node@26.6.5)):
     dependencies:
       picomatch: 4.0.7
-      vite: 8.3.4(@types/node@24.0.10)
+      vite: 8.3.4(@types/node@26.6.5)
 
-  vite@8.3.4(@types/node@24.0.10):
+  vite@8.3.4(@types/node@26.6.5):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -1141,7 +1141,7 @@ snapshots:
       rolldown: 1.2.14
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.0.10
+      '@types/node': 26.6.5
       fsevents: 2.3.3
 
   ws@8.22.0: {}
