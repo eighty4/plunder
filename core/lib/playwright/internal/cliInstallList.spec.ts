@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import { suite, test } from 'node:test'
-import { readTestOutput } from './test_output/readTestOutput.ts'
 import {
     parsePlaywrightCliInstallList,
     type PlaywrightVersionInstalls,
 } from './cliInstallList.ts'
+import { readTestOutput } from './test_output/readTestOutput.ts'
 
 suite('parsePlaywrightCliInstallList', () => {
     test('parse list of dependencies', async () => {

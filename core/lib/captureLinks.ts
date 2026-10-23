@@ -1,10 +1,10 @@
 import { writeFile } from 'node:fs/promises'
 import type { Page } from 'playwright-core'
 import { ZodError, z } from 'zod'
-import { playwrightInstall } from './playwright/playwrightInstall.ts'
-import { BrowserManager } from './playwright/playwrightProcess.ts'
 import { getBaseHref, rewriteHref } from './url.ts'
 import { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
+import { playwrightInstall } from './playwright/playwrightInstall.ts'
+import { BrowserManager } from './playwright/playwrightProcess.ts'
 
 export interface CheckHrefsOptions {
     /**

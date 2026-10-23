@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import { suite, test } from 'node:test'
+import type { BrowserEngine } from '../../plunderBrowsers.ts'
 import { type PlaywrightCliInstallList } from './cliInstallList.ts'
 import { type PlaywrightCliInstallDryRun } from './cliInstallDryRun.ts'
 import {
     internalCheckPlaywrightBrowserInstalls,
     type PlaywrightBrowserInstalls,
 } from './checkBrowsers.ts'
-import type { BrowserEngine } from '../../plunderBrowsers.ts'
 
 suite('internalCheckPlaywrightBrowserInstalls', () => {
     test('detects up to date installed browser', () => {

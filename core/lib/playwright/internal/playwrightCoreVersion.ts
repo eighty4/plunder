@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
-import { resolveDependency } from './resolveDependency.ts'
 import { join } from 'node:path'
+import { resolveDependency } from './resolveDependency.ts'
 
 export async function getPlaywrightCoreVersion(): Promise<string> {
     return JSON.parse(

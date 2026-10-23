@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { suite, test } from 'node:test'
-import { readTestOutput } from './test_output/readTestOutput.ts'
 import { parsePlaywrightCliInstallDryRun } from './cliInstallDryRun.ts'
+import { readTestOutput } from './test_output/readTestOutput.ts'
 
 suite('parsePlaywrightInstallDryRun', () => {
     test('parse single digit number from linux_chromium_1.64.1', async () => {

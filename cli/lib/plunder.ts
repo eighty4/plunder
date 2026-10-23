@@ -2,6 +2,7 @@
 
 import nopt from 'nopt'
 import ansi from './ansi.ts'
+import type { BrowserInstallOpts } from './browser.ts'
 import {
     activeScreenshotCapture,
     captureScreenshotsCommand,
@@ -10,7 +11,6 @@ import {
 import { devicesPrintCommand } from './devices.ts'
 import { errorPrint } from './error.ts'
 import { linkCheckingCommand } from './links.ts'
-import type { BrowserInstallOpts } from './browser.ts'
 
 const knownOpts: Record<string, any> = {
     // default browser engine when not specified by a device query

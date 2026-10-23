@@ -1,4 +1,4 @@
-import type { CaptureProgress, CaptureProgressStep } from './captureProgress.js'
+import type { CaptureProgress, CaptureProgressStep } from './captureProgress.ts'
 
 export class CaptureProgressUpdater {
     #step: CaptureProgressStep = 'starting'

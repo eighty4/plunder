@@ -1,9 +1,8 @@
 import { createReadStream, createWriteStream } from 'node:fs'
 import { appendFile, readdir, readFile, stat } from 'node:fs/promises'
 import { createServer as createHttpServer } from 'node:http'
-import { join as joinPath, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { join } from 'node:path'
 import {
     CaptureHookError,
     CaptureHookImportError,
@@ -70,7 +69,7 @@ export async function captureScreenshotsCommand(
         if (bootyPort === false) {
             console.log(
                 'See your QA booty at',
-                ansi.green(joinPath(opts.outDir, 'index.html')),
+                ansi.green(join(opts.outDir, 'index.html')),
             )
         } else if (process.stdin.isTTY) {
             await serveWebappReport(bootyPort, opts.outDir)
@@ -229,7 +228,7 @@ async function serveWebappReport(port: number, outDir: string): Promise<void> {
             res.writeHead(405)
             res.end()
         } else if (req.url === '/') {
-            const p = joinPath(outDir, 'index.html')
+            const p = join(outDir, 'index.html')
             const reading = createReadStream(p)
             res.setHeader('Content-Type', 'text/html')
             reading.pipe(res)
@@ -241,7 +240,7 @@ async function serveWebappReport(port: number, outDir: string): Promise<void> {
                 res.end()
             })
         } else {
-            const p = joinPath(outDir, req.url!)
+            const p = join(outDir, req.url!)
             const reading = createReadStream(p)
             res.setHeader('Content-Type', 'image/png')
             reading.pipe(res)
