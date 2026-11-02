@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, it } from 'node:test'
-import { resolveCaptureHook, resolveCaptureHookImport } from './captureHook.ts'
+import { resolveCaptureHook, resolveCaptureHookImport } from './hook.ts'
 
 describe('resolveCaptureHook', () => {
     let tmpDir: string

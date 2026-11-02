@@ -1,11 +1,11 @@
 import type { Page } from 'playwright-core'
-import type { CaptureScreenshotsOptions } from './api.ts'
-import type { CaptureProgressUpdater } from './captureUpdater.js'
-import { findAllCss } from './cssFind.ts'
-import { type CssMediaQuery, parseCssForMediaQueries } from './cssParse.ts'
-import { findAllSameOriginAnchorHrefs } from './domParse.ts'
-import { getBaseHref } from './url.ts'
-import type { BrowserManager } from './playwright/playwrightProcess.ts'
+import { findAllCss } from '../cssFind.ts'
+import { type CssMediaQuery, parseCssForMediaQueries } from '../cssParse.ts'
+import { findAllSameOriginAnchorHrefs } from '../domParse.ts'
+import type { BrowserManager } from '../playwright/playwrightProcess.ts'
+import { getBaseHref } from '../url.ts'
+import type { CaptureScreenshotsOptions } from './capture.ts'
+import type { CaptureScreenshotsUpdater } from './updater.ts'
 
 export interface ParsePageResult {
     anchorHrefs?: Array<string>
@@ -37,7 +37,7 @@ export async function parsePageForMediaQueries(
 export async function parsePagesForMediaQueries(
     browsers: BrowserManager,
     opts: CaptureScreenshotsOptions,
-    updater: CaptureProgressUpdater,
+    updater: CaptureScreenshotsUpdater,
 ): Promise<Array<ParsePageResult>> {
     const parsingPages: Record<string, Promise<ParsePageResult>> = {}
     const parsedPages: Array<ParsePageResult> = []

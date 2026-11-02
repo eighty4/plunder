@@ -18,6 +18,8 @@
 - Renamings of `CheckHrefs*` types from `plunder-core` to `CaptureLinks*`
   and explicitly declaring the link capturing error type `InvalidCheckHrefsOption`
   to `InvalidCaptureLinksOptionsError`.
+- Renamings of all `CaptureProgress*` types to explicitly declare use for capturing
+  screenshots with `CaptureScreenshotsProgress*` naming.
 
 ### Fixed
 

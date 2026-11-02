@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import {
     CaptureHookError,
     CaptureHookImportError,
-    type CaptureProgress,
+    type CaptureScreenshotsProgress,
     type CaptureScreenshotsOptions,
     type CaptureScreenshotsResult,
     captureScreenshots,
@@ -156,7 +156,7 @@ async function validateCaptureOpts(
     }
 }
 
-function progress(update: CaptureProgress) {
+function progress(update: CaptureScreenshotsProgress) {
     switch (update.step) {
         case 'starting':
             console.log('Get ready to plunder!')

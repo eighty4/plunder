@@ -1,6 +1,6 @@
 import { devices } from 'playwright-core'
-import type { CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import type { BrowserEngine, BrowserOptions } from './plunderBrowsers.ts'
+import type { CaptureScreenshotsOptions } from './screenshots/capture.ts'
 
 const defaultDeviceLabals: Readonly<Array<keyof typeof devices>> =
     Object.freeze([

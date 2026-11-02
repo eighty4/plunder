@@ -1,7 +1,10 @@
-import type { CaptureProgress, CaptureProgressStep } from './captureProgress.ts'
+import type {
+    CaptureScreenshotsProgress,
+    CaptureScreenshotsStep,
+} from './progress.ts'
 
-export class CaptureProgressUpdater {
-    #step: CaptureProgressStep = 'starting'
+export class CaptureScreenshotsUpdater {
+    #step: CaptureScreenshotsStep = 'starting'
     readonly #pages: { total: number; completed: number } = {
         total: 0,
         completed: 0,
@@ -10,9 +13,9 @@ export class CaptureProgressUpdater {
         total: 0,
         completed: 0,
     }
-    readonly #updater: (progress: CaptureProgress) => void
+    readonly #updater: (progress: CaptureScreenshotsProgress) => void
 
-    constructor(updater: (progress: CaptureProgress) => void) {
+    constructor(updater: (progress: CaptureScreenshotsProgress) => void) {
         this.#updater = updater
     }
 
@@ -51,7 +54,7 @@ export class CaptureProgressUpdater {
         this.#updater(this.#createUpdate())
     }
 
-    #createUpdate(): CaptureProgress {
+    #createUpdate(): CaptureScreenshotsProgress {
         switch (this.#step) {
             case 'starting':
                 return {

@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { type CaptureScreenshotsOptions } from './captureScreenshots.ts'
 import { resolveCaptureManifest } from './captureManifest.ts'
 import { compareMediaQueries, type CssMediaQuery } from './cssParse.ts'
+import type { CaptureScreenshotsOptions } from './screenshots/capture.ts'
 
 describe('resolveCaptureManifest', () => {
     it('resolves css breakpoint screenshots', () => {

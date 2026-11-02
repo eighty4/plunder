@@ -2,17 +2,17 @@ import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page } from 'playwright-core'
 import z, { ZodError } from 'zod'
-import { type CaptureHook, resolveCaptureHook } from './captureHook.ts'
-import { resolveCaptureManifest } from './captureManifest.ts'
-import { type CaptureProgressCallback } from './captureProgress.ts'
-import { CaptureProgressUpdater } from './captureUpdater.ts'
-import { type CssMediaQuery } from './cssParse.ts'
-import { resolveDevices } from './devices.ts'
-import { makeOutDirForPageUrl } from './fileSystem.ts'
+import { resolveCaptureManifest } from '../captureManifest.ts'
+import { type CssMediaQuery } from '../cssParse.ts'
+import { resolveDevices } from '../devices.ts'
+import { makeOutDirForPageUrl } from '../fileSystem.ts'
+import { playwrightInstall } from '../playwright/playwrightInstall.ts'
+import { BrowserManager } from '../playwright/playwrightProcess.ts'
+import { type BrowserEngine, BrowserEngineValues } from '../plunderBrowsers.ts'
+import { type CaptureHook, resolveCaptureHook } from './hook.ts'
 import { parsePagesForMediaQueries } from './pageParse.ts'
-import { type BrowserEngine, BrowserEngineValues } from './plunderBrowsers.ts'
-import { playwrightInstall } from './playwright/playwrightInstall.ts'
-import { BrowserManager } from './playwright/playwrightProcess.ts'
+import { type CaptureScreenshotsProgress } from './progress.ts'
+import { CaptureScreenshotsUpdater } from './updater.ts'
 
 export interface CaptureScreenshotsOptions {
     /**
@@ -94,7 +94,7 @@ export interface CaptureScreenshotsOptions {
      * Callback that receives progress updates from screenshot capturing
      * process.
      */
-    progress: CaptureProgressCallback
+    progress: CaptureScreenshotsCallback
 
     /**
      * Whether to query the DOM for anchor tags and traverse websites
@@ -111,6 +111,10 @@ export interface CaptureScreenshotsOptions {
      */
     urls: Array<string>
 }
+
+export type CaptureScreenshotsCallback = (
+    progress: CaptureScreenshotsProgress,
+) => void
 
 export class InvalidCaptureOptionsError extends Error {
     // map of paths to validation error messages
@@ -183,7 +187,7 @@ export async function captureScreenshots(
     const captureHook = opts.captureHook
         ? await resolveCaptureHook(opts.captureHook)
         : null
-    const updater = new CaptureProgressUpdater(opts.progress)
+    const updater = new CaptureScreenshotsUpdater(opts.progress)
     updater.markStarting()
     const browsers = new BrowserManager()
     try {
@@ -226,7 +230,7 @@ async function installBrowsersForCapture(
 async function resolveUrlsAndMediaQueries(
     browsers: BrowserManager,
     opts: CaptureScreenshotsOptions,
-    updater: CaptureProgressUpdater,
+    updater: CaptureScreenshotsUpdater,
 ): Promise<Record<string, null | Array<CssMediaQuery>>> {
     const result: Record<string, null | Array<CssMediaQuery>> = {}
     if (opts.breakpoints) {
@@ -250,7 +254,7 @@ async function captureScreenshotsForPage(
     captureHook: CaptureHook | null,
     mediaQueries: Array<CssMediaQuery> | null,
     opts: CaptureScreenshotsOptions,
-    updater: CaptureProgressUpdater,
+    updater: CaptureScreenshotsUpdater,
 ): Promise<CaptureScreenshotsResult> {
     const outDir = await makeOutDirForPageUrl(opts.outDir, url)
     const manifest = resolveCaptureManifest(

@@ -7,11 +7,11 @@ import {
 } from 'node:http'
 import { type Duplex, Transform } from 'node:stream'
 import WebSocket, { WebSocketServer } from 'ws'
-import { type CssBreakpoint, type CssMediaQuery } from './cssParse.ts'
-import { type DeviceDefinition, getModernDevices } from './devices.ts'
-import { parsePageForMediaQueries } from './pageParse.ts'
-import { playwrightInstall } from './playwright/playwrightInstall.ts'
-import { BrowserManager } from './playwright/playwrightProcess.ts'
+import { type CssBreakpoint, type CssMediaQuery } from '../../cssParse.ts'
+import { type DeviceDefinition, getModernDevices } from '../../devices.ts'
+import { playwrightInstall } from '../../playwright/playwrightInstall.ts'
+import { BrowserManager } from '../../playwright/playwrightProcess.ts'
+import { parsePageForMediaQueries } from '../pageParse.ts'
 
 export type OpenPageReq = {
     type: 'open-page'
