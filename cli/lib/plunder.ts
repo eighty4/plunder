@@ -164,7 +164,6 @@ if (parsed.help) {
             modernDevices: parsed['modern-devices'] === true,
             outDir: parsed['out'] || parsed['out-dir'],
             headless: parsed['not-headless'] !== true,
-            recursive: parsed['recursive'] === true,
             urls: parsed.argv.remain.filter(remain => remain !== 'capture'),
         },
         browserInstallOpts(),

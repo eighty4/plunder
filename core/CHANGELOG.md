@@ -25,6 +25,10 @@
 
 - Added missing `CssCodeExcerpt` excerpt from `plunder-core` and `plunder-core/web`.
 
+### Removed
+
+- Dropped `recursive` option from `CaptureScreenshotsOptions` and underlying feature.
+
 ## [v0.0.6] - 2025-07-03
 
 ### Added

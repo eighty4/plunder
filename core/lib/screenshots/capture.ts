@@ -97,16 +97,6 @@ export interface CaptureScreenshotsOptions {
     progress: CaptureScreenshotsCallback
 
     /**
-     * Whether to query the DOM for anchor tags and traverse websites
-     * recursively. All anchor hrefs on the same domain will be included in
-     * screenshot capturing.
-     *
-     * Use the environment variable PLUNDER_BROWSER_LIMIT to throttle
-     * concurrent browser contexts.
-     */
-    recursive: boolean
-
-    /**
      * URLs of webpages to perform screenshot capturing on.
      */
     urls: Array<string>
@@ -151,7 +141,6 @@ export function validateCaptureScreenshotsOptions(
             headless: z.boolean(),
             outDir: z.string(),
             progress: z.function(),
-            recursive: z.boolean(),
             urls: z.array(z.url()),
         })
             .strict()

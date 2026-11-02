@@ -1,14 +1,12 @@
 import type { Page } from 'playwright-core'
-import { findAllCss } from '../cssFind.ts'
+import { findAllCss, type FindCssResult } from '../cssFind.ts'
 import { type CssMediaQuery, parseCssForMediaQueries } from '../cssParse.ts'
-import { findAllSameOriginAnchorHrefs } from '../domParse.ts'
 import type { BrowserManager } from '../playwright/playwrightProcess.ts'
 import { getBaseHref } from '../url.ts'
 import type { CaptureScreenshotsOptions } from './capture.ts'
 import type { CaptureScreenshotsUpdater } from './updater.ts'
 
 export interface ParsePageResult {
-    anchorHrefs?: Array<string>
     mediaQueries: Array<CssMediaQuery>
     url: string
 }
@@ -16,19 +14,17 @@ export interface ParsePageResult {
 export async function parsePageForMediaQueries(
     page: Page,
     url: string,
-    recursive: boolean = false,
 ): Promise<ParsePageResult> {
-    await page.goto(url)
-    const baseHref = await getBaseHref(page)
-    const css = await findAllCss(page, baseHref)
-    let anchorHrefs
-    if (recursive) {
-        anchorHrefs = await findAllSameOriginAnchorHrefs(page, baseHref)
+    let css: FindCssResult
+    try {
+        await page.goto(url)
+        const baseHref = await getBaseHref(page)
+        css = await findAllCss(page, baseHref)
+    } finally {
+        await page.close()
     }
-    await page.close()
     const { mediaQueries } = parseCssForMediaQueries(css)
     return {
-        anchorHrefs,
         mediaQueries,
         url,
     }
@@ -48,9 +44,7 @@ export async function parsePagesForMediaQueries(
             if (typeof parsingPages[url] === 'undefined') {
                 parsingPages[url] = browsers
                     .newPage('chromium', true)
-                    .then(page =>
-                        parsePageForMediaQueries(page, url, opts.recursive),
-                    )
+                    .then(page => parsePageForMediaQueries(page, url))
             }
         }
     }
@@ -60,9 +54,6 @@ export async function parsePagesForMediaQueries(
             const parsedPage = await Promise.race(Object.values(parsingPages))
             updater.markPageParsed()
             delete parsingPages[parsedPage.url]
-            if (opts.recursive && parsedPage.anchorHrefs?.length) {
-                initParsingPages(parsedPage.anchorHrefs!)
-            }
             parsedPages.push(parsedPage)
         }
     }
