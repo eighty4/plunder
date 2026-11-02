@@ -6,7 +6,7 @@ import { BrowserEngineValues, type BrowserEngine } from './plunderBrowsers.ts'
 import { playwrightInstall } from './playwright/playwrightInstall.ts'
 import { BrowserManager } from './playwright/playwrightProcess.ts'
 
-export interface CheckHrefsOptions {
+export type CaptureLinksOptions = {
     /**
      * The browser engine to use when parsing pages for anchor hrefs.
      *
@@ -33,14 +33,14 @@ export interface CheckHrefsOptions {
     urls: Array<string>
 }
 
-export class InvalidCheckHrefsOptionsError {
+export class InvalidCaptureLinksOptionsError {
     readonly invalidFields: Array<string>
     constructor(invalidFields: Array<string>) {
         this.invalidFields = invalidFields
     }
 }
 
-function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
+function validateCaptureLinksOptions(opts: CaptureLinksOptions) {
     try {
         z.object({
             browser: z.enum(BrowserEngineValues).optional(),
@@ -52,7 +52,7 @@ function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
             .parse(opts)
     } catch (e: any) {
         if (e instanceof ZodError) {
-            throw new InvalidCheckHrefsOptionsError(
+            throw new InvalidCaptureLinksOptionsError(
                 e.issues.map(i => i.path.join('.')),
             )
         } else {
@@ -61,7 +61,7 @@ function validateCheckHrefsOptions(opts: CheckHrefsOptions) {
     }
 }
 
-export interface CheckHrefsResult {
+export type CaptureLinksResult = {
     good: boolean
     pages: Array<PageCheckResult>
 }
@@ -79,9 +79,9 @@ export interface HrefCheckResult {
 }
 
 export async function checkAnchorHrefs(
-    opts: CheckHrefsOptions,
-): Promise<CheckHrefsResult> {
-    validateCheckHrefsOptions(opts)
+    opts: CaptureLinksOptions,
+): Promise<CaptureLinksResult> {
+    validateCaptureLinksOptions(opts)
     const browser = opts.browser ?? 'chromium'
     const headless = opts.headless ?? true
     await playwrightInstall(new Set([browser]), headless)

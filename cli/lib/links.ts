@@ -1,8 +1,8 @@
 import {
     checkAnchorHrefs,
-    InvalidCheckHrefsOptionsError,
-    type CheckHrefsOptions,
-    type CheckHrefsResult,
+    InvalidCaptureLinksOptionsError,
+    type CaptureLinksOptions,
+    type CaptureLinksResult,
 } from '@eighty4/plunder-core'
 import ansi from './ansi.ts'
 import {
@@ -12,7 +12,7 @@ import {
 import { errorPrint } from './error.ts'
 
 export async function linkCheckingCommand(
-    opts: CheckHrefsOptions,
+    opts: CaptureLinksOptions,
     installOpts: BrowserInstallOpts,
 ): Promise<never> {
     console.log('Plundering anchor tags for broken links')
@@ -26,7 +26,7 @@ export async function linkCheckingCommand(
         printResult(result)
         process.exit(result.good ? 0 : 1)
     } catch (e: any) {
-        if (e instanceof InvalidCheckHrefsOptionsError) {
+        if (e instanceof InvalidCaptureLinksOptionsError) {
             errorPrint(e.invalidFields.join(',') + ' field(s) are invalid')
         } else {
             errorPrint(e)
@@ -34,7 +34,7 @@ export async function linkCheckingCommand(
     }
 }
 
-function printResult(result: CheckHrefsResult) {
+function printResult(result: CaptureLinksResult) {
     result.pages.forEach(page => {
         const mal = page.hrefs.filter(href => !href.good)
         console.log(

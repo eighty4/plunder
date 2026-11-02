@@ -8,14 +8,16 @@
   browser installs on linux platforms, `playwright-core` has added
   `getBrowserInstallNeededDeps`, `getBrowserInstallsNeedingSystemDeps` and
   `PlaywrightCliInstallDepsDryRun`.
-- `CheckHrefsOptions` options for overriding the browser default of
+- `CaptureLinksOptions` options for overriding the browser default of
   headless `chromium` for link checking.
 
 ### Changed
 
 - Renamed `checkPlaywrightBrowserDistribution` and `PlaywrightBrowserDistribution`
   to `checkPlaywrightBrowserInstalls` and `PlaywrightBrowserInstalls`.
-- Renamed `InvalidCheckHrefsOption` to `InvalidCheckHrefsOptionsError`.
+- Renamings of `CheckHrefs*` types from `plunder-core` to `CaptureLinks*`
+  and explicitly declaring the link capturing error type `InvalidCheckHrefsOption`
+  to `InvalidCaptureLinksOptionsError`.
 
 ### Fixed
 

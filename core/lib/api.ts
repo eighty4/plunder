@@ -1,10 +1,10 @@
 export { CaptureHookError, CaptureHookImportError } from './captureHook.ts'
 export {
-    type CheckHrefsOptions,
-    type CheckHrefsResult,
+    type CaptureLinksOptions,
+    type CaptureLinksResult,
     type HrefCheckResult,
     type PageCheckResult,
-    InvalidCheckHrefsOptionsError,
+    InvalidCaptureLinksOptionsError,
     checkAnchorHrefs,
 } from './captureLinks.ts'
 export {
