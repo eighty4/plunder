@@ -136,7 +136,7 @@ export function validateCaptureScreenshotsOptions(
             breakpoints: z.boolean(),
             browser: z.enum(BrowserEngineValues),
             captureHook: z.string().optional(),
-            deviceQueries: z.array(z.union([z.literal(false), z.string()])),
+            deviceQueries: z.union([z.literal(false), z.array(z.string())]),
             modernDevices: z.boolean(),
             headless: z.boolean(),
             outDir: z.string(),

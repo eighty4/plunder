@@ -24,6 +24,8 @@
 ### Fixed
 
 - Added missing `CssCodeExcerpt` excerpt from `plunder-core` and `plunder-core/web`.
+- Corrected validation of `CaptureScreenshotsOptions` to allow `deviceQueries: false`
+  matching the type's signature.
 
 ### Removed
 
